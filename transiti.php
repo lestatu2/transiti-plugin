@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: Transiti
  * Plugin URI:  http://fabermind.it
@@ -25,6 +25,7 @@ define('TRANSITI_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('TRANSITI_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 require_once TRANSITI_PLUGIN_PATH . 'src/Autoloader.php';
+require_once TRANSITI_PLUGIN_PATH . 'acf.php';
 
 \Fabermind\Transiti\Autoloader::register();
 
@@ -32,3 +33,4 @@ register_activation_hook(TRANSITI_PLUGIN_FILE, [\Fabermind\Transiti\Core\Plugin:
 register_deactivation_hook(TRANSITI_PLUGIN_FILE, [\Fabermind\Transiti\Core\Plugin::class, 'deactivate']);
 
 \Fabermind\Transiti\Core\Plugin::boot();
+
