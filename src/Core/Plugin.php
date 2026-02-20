@@ -18,6 +18,7 @@ final class Plugin
         add_action('template_redirect', [self::class, 'trackPostView'], 1);
         add_action('wp_enqueue_scripts', [self::class, 'enqueueFrontendAssets']);
         add_action('admin_init', [self::class, 'maybeEnsureForumPageInMainMenu']);
+        add_action('admin_init', [self::class, 'maybeEnsureContactPage']);
         add_action('admin_init', [self::class, 'registerViewsAdminColumns']);
         add_filter('manage_rivista_posts_columns', [self::class, 'addRivistaAdminColumns']);
         add_action('manage_rivista_posts_custom_column', [self::class, 'renderRivistaAdminColumn'], 10, 2);
@@ -38,10 +39,12 @@ final class Plugin
         self::registerRoles();
         self::registerTaxonomies();
         self::ensureHomePage();
+        self::ensureContactPage();
         self::ensureSezioniTerms();
         self::ensureEditorialeTerm();
         self::ensureSezioniTermsInMainMenu();
         self::ensureForumPageInMainMenuAfterSezioni();
+        self::ensureContactPageInMainMenuAfterForum();
         flush_rewrite_rules();
     }
 
@@ -130,6 +133,30 @@ final class Plugin
             )
         );
 
+        register_post_type(
+            'faq',
+            array(
+                'labels' => array(
+                    'name'          => __('FAQ', 'transiti'),
+                    'singular_name' => __('FAQ', 'transiti'),
+                    'add_new_item'  => __('Aggiungi FAQ', 'transiti'),
+                    'edit_item'     => __('Modifica FAQ', 'transiti'),
+                    'new_item'      => __('Nuova FAQ', 'transiti'),
+                    'view_item'     => __('Vedi FAQ', 'transiti'),
+                    'search_items'  => __('Cerca FAQ', 'transiti'),
+                ),
+                'public'              => true,
+                'show_in_rest'        => true,
+                'menu_position'       => 24,
+                'menu_icon'           => 'dashicons-editor-help',
+                'supports'            => array('title', 'editor'),
+                'has_archive'         => true,
+                'rewrite'             => array('slug' => 'faq'),
+                'exclude_from_search' => false,
+                'publicly_queryable'  => true,
+            )
+        );
+
     }
 
     public static function registerTaxonomies(): void
@@ -191,6 +218,30 @@ final class Plugin
                     'delete_terms' => 'manage_editoriale_terms',
                     'assign_terms' => 'manage_editoriale_terms',
                 ),
+            )
+        );
+
+        register_taxonomy(
+            'faq_category',
+            array('faq'),
+            array(
+                'labels' => array(
+                    'name'          => __('Categorie FAQ', 'transiti'),
+                    'singular_name' => __('Categoria FAQ', 'transiti'),
+                    'search_items'  => __('Cerca categorie FAQ', 'transiti'),
+                    'all_items'     => __('Tutte le categorie FAQ', 'transiti'),
+                    'edit_item'     => __('Modifica categoria FAQ', 'transiti'),
+                    'update_item'   => __('Aggiorna categoria FAQ', 'transiti'),
+                    'add_new_item'  => __('Aggiungi categoria FAQ', 'transiti'),
+                    'new_item_name' => __('Nuova categoria FAQ', 'transiti'),
+                    'menu_name'     => __('Categorie FAQ', 'transiti'),
+                ),
+                'public'            => true,
+                'hierarchical'      => true,
+                'show_ui'           => true,
+                'show_admin_column' => true,
+                'show_in_rest'      => true,
+                'rewrite'           => array('slug' => 'categoria-faq'),
             )
         );
     }
@@ -677,6 +728,17 @@ final class Plugin
         }
 
         self::ensureForumPageInMainMenuAfterSezioni();
+        self::ensureContactPageInMainMenuAfterForum();
+    }
+
+    public static function maybeEnsureContactPage(): void
+    {
+        if (! is_admin() || ! current_user_can('manage_options')) {
+            return;
+        }
+
+        self::ensureContactPage();
+        self::ensureContactPageInMainMenuAfterForum();
     }
 
     private static function ensureForumPageInMainMenuAfterSezioni(): void
@@ -737,6 +799,65 @@ final class Plugin
         );
     }
 
+    private static function ensureContactPageInMainMenuAfterForum(): void
+    {
+        $menuId = self::resolveMainMenuId(get_nav_menu_locations());
+        if ($menuId <= 0) {
+            return;
+        }
+
+        $contactPage = self::findContactPage();
+        if (! $contactPage instanceof \WP_Post) {
+            return;
+        }
+
+        $forumPage = self::findForumPage();
+        $forumPageId = $forumPage instanceof \WP_Post ? (int) $forumPage->ID : 0;
+
+        $existingItems = wp_get_nav_menu_items($menuId);
+        $targetPosition = self::getContactTargetPosition($existingItems, $forumPageId);
+
+        if (is_array($existingItems)) {
+            foreach ($existingItems as $item) {
+                if (
+                    ($item->type ?? '') === 'post_type'
+                    && ($item->object ?? '') === 'page'
+                    && (int) ($item->object_id ?? 0) === (int) $contactPage->ID
+                ) {
+                    wp_update_nav_menu_item(
+                        $menuId,
+                        (int) $item->ID,
+                        array(
+                            'menu-item-title'     => $contactPage->post_title,
+                            'menu-item-object'    => 'page',
+                            'menu-item-object-id' => (int) $contactPage->ID,
+                            'menu-item-type'      => 'post_type',
+                            'menu-item-status'    => 'publish',
+                            'menu-item-parent-id' => 0,
+                            'menu-item-position'  => $targetPosition,
+                        )
+                    );
+
+                    return;
+                }
+            }
+        }
+
+        wp_update_nav_menu_item(
+            $menuId,
+            0,
+            array(
+                'menu-item-title'     => $contactPage->post_title,
+                'menu-item-object'    => 'page',
+                'menu-item-object-id' => (int) $contactPage->ID,
+                'menu-item-type'      => 'post_type',
+                'menu-item-status'    => 'publish',
+                'menu-item-parent-id' => 0,
+                'menu-item-position'  => $targetPosition,
+            )
+        );
+    }
+
     private static function resolveMainMenuId(array $locations): int
     {
         foreach (array('main-menu', 'main_menu') as $candidate) {
@@ -785,6 +906,29 @@ final class Plugin
         return null;
     }
 
+    private static function findContactPage(): ?\WP_Post
+    {
+        $contactPage = get_page_by_path('contattaci', OBJECT, 'page');
+        if ($contactPage instanceof \WP_Post) {
+            return $contactPage;
+        }
+
+        $maybeContactPages = get_posts(
+            array(
+                'post_type'      => 'page',
+                'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                'posts_per_page' => 1,
+                'title'          => 'Contattaci',
+            )
+        );
+
+        if (! empty($maybeContactPages) && $maybeContactPages[0] instanceof \WP_Post) {
+            return $maybeContactPages[0];
+        }
+
+        return null;
+    }
+
     /**
      * Puts Forum right after the last "Sezioni" item when present, otherwise at end.
      *
@@ -814,6 +958,43 @@ final class Plugin
 
         if ($maxSezioniPosition > 0) {
             return $maxSezioniPosition + 1;
+        }
+
+        return $maxMenuPosition + 1;
+    }
+
+    /**
+     * Puts Contattaci right after Forum when present, otherwise at end.
+     *
+     * @param array<int, object>|false $existingItems
+     */
+    private static function getContactTargetPosition($existingItems, int $forumPageId): int
+    {
+        if (! is_array($existingItems) || empty($existingItems)) {
+            return 1;
+        }
+
+        $maxMenuPosition = 0;
+        $forumPosition = 0;
+
+        foreach ($existingItems as $item) {
+            $position = (int) ($item->menu_order ?? 0);
+            if ($position > $maxMenuPosition) {
+                $maxMenuPosition = $position;
+            }
+
+            if (
+                $forumPageId > 0
+                && ($item->type ?? '') === 'post_type'
+                && ($item->object ?? '') === 'page'
+                && (int) ($item->object_id ?? 0) === $forumPageId
+            ) {
+                $forumPosition = $position;
+            }
+        }
+
+        if ($forumPosition > 0) {
+            return $forumPosition + 1;
         }
 
         return $maxMenuPosition + 1;
@@ -864,6 +1045,51 @@ final class Plugin
         update_post_meta($homePage->ID, '_wp_page_template', 'home.php');
         update_option('show_on_front', 'page');
         update_option('page_on_front', (int) $homePage->ID);
+    }
+
+    private static function ensureContactPage(): void
+    {
+        $contactPage = get_page_by_path('contattaci', OBJECT, 'page');
+
+        if (! $contactPage instanceof \WP_Post) {
+            $maybeContactPages = get_posts(
+                array(
+                    'post_type'      => 'page',
+                    'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                    'posts_per_page' => 1,
+                    'title'          => 'Contattaci',
+                )
+            );
+
+            if (! empty($maybeContactPages) && $maybeContactPages[0] instanceof \WP_Post) {
+                $contactPage = $maybeContactPages[0];
+            }
+        }
+
+        if (! $contactPage instanceof \WP_Post) {
+            $contactPageId = wp_insert_post(
+                array(
+                    'post_title'   => 'Contattaci',
+                    'post_name'    => 'contattaci',
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                    'post_content' => '',
+                ),
+                true
+            );
+
+            if (is_wp_error($contactPageId) || ! is_int($contactPageId)) {
+                return;
+            }
+
+            $contactPage = get_post($contactPageId);
+        }
+
+        if (! $contactPage instanceof \WP_Post) {
+            return;
+        }
+
+        update_post_meta((int) $contactPage->ID, '_wp_page_template', 'page-contact-us.php');
     }
 
     /**
