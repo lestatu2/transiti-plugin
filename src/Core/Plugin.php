@@ -28,6 +28,7 @@ final class Plugin
         add_action('admin_init', [self::class, 'maybeEnsurePodcastArchiveInMainMenu']);
         add_action('admin_init', [self::class, 'maybeEnsureRivistaArchiveInMainMenu']);
         add_action('admin_init', [self::class, 'registerViewsAdminColumns']);
+        add_action('admin_enqueue_scripts', [self::class, 'enqueueRivistaAdminAssets']);
         add_action('acf/save_post', [self::class, 'syncPodcastEpisodeActivityMeta'], 20);
         add_action('wp_ajax_transiti_track_podcast_session_view', [self::class, 'trackPodcastEpisodeSessionView']);
         add_action('wp_ajax_nopriv_transiti_track_podcast_session_view', [self::class, 'trackPodcastEpisodeSessionView']);
@@ -47,7 +48,12 @@ final class Plugin
         add_action('admin_footer-post-new.php', [self::class, 'printSezioniRadioScript']);
 
         add_action('save_post_post', [self::class, 'enforceSingleSezioneTerm']);
+        add_action('save_post_post', [self::class, 'ensureAsgarosTopicForPublishedPostOnSave'], 40, 3);
+        add_action('add_meta_boxes_rivista', [self::class, 'registerRivistaAssociatedPostsMetabox']);
+        add_action('save_post_rivista', [self::class, 'saveRivistaAssociatedPostsMetabox']);
+        add_action('save_post_rivista', [self::class, 'syncRivistaForumInAsgaros'], 30, 3);
         add_action('transition_post_status', [self::class, 'initializeViewsCountOnFirstPublish'], 20, 3);
+        add_action('transition_post_status', [self::class, 'createAsgarosTopicForPostOnPublish'], 30, 3);
         add_action('transition_post_status', [self::class, 'notifyRedattoriOnAuthorReview'], 20, 3);
         add_action('add_meta_boxes_post', [self::class, 'reorderEditorialeMetabox'], 99);
     }
@@ -125,7 +131,7 @@ final class Plugin
                 'show_in_rest'        => true,
                 'menu_position'       => 22,
                 'menu_icon'           => 'dashicons-book-alt',
-                'supports'            => array('title', 'thumbnail'),
+                'supports'            => array('title', 'editor', 'thumbnail', 'author'),
                 'has_archive'         => true,
                 'rewrite'             => array('slug' => 'rivista'),
                 'exclude_from_search' => false,
@@ -662,6 +668,668 @@ final class Plugin
             $query->set('meta_key', 'data');
             $query->set('orderby', 'meta_value');
         }
+    }
+
+    public static function enqueueRivistaAdminAssets(string $hookSuffix): void
+    {
+        if (! in_array($hookSuffix, array('post.php', 'post-new.php'), true)) {
+            return;
+        }
+
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (! $screen instanceof \WP_Screen || $screen->post_type !== 'rivista') {
+            return;
+        }
+
+        wp_enqueue_script('jquery-ui-sortable');
+    }
+
+    public static function registerRivistaAssociatedPostsMetabox(): void
+    {
+        add_meta_box(
+            'transiti-rivista-associated-posts',
+            __('Articoli associati', 'transiti'),
+            [self::class, 'renderRivistaAssociatedPostsMetabox'],
+            'rivista',
+            'normal',
+            'default'
+        );
+    }
+
+    public static function renderRivistaAssociatedPostsMetabox(\WP_Post $post): void
+    {
+        $rivistaId = (int) $post->ID;
+        $associatedPosts = get_posts(
+            array(
+                'post_type'              => 'post',
+                'post_status'            => 'publish',
+                'posts_per_page'         => -1,
+                'orderby'                => 'date',
+                'order'                  => 'DESC',
+                'no_found_rows'          => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'meta_query'             => array(
+                    array(
+                        'key'     => 'post_rivista_assoc',
+                        'value'   => $rivistaId,
+                        'compare' => '=',
+                    ),
+                ),
+            )
+        );
+
+        $associatedIds = array_map(
+            static fn($item): int => (int) $item->ID,
+            array_filter(
+                $associatedPosts,
+                static fn($item): bool => $item instanceof \WP_Post
+            )
+        );
+
+        $savedOrder = get_post_meta($rivistaId, '_transiti_rivista_related_posts_order', true);
+        $savedOrder = is_array($savedOrder) ? array_map('intval', $savedOrder) : array();
+        $savedOrder = array_values(array_intersect($savedOrder, $associatedIds));
+
+        $remainingIds = array_values(array_diff($associatedIds, $savedOrder));
+        $orderedIds = array_values(array_merge($savedOrder, $remainingIds));
+
+        $orderedPosts = array();
+        foreach ($orderedIds as $postId) {
+            $candidate = get_post($postId);
+            if ($candidate instanceof \WP_Post && $candidate->post_type === 'post' && $candidate->post_status === 'publish') {
+                $orderedPosts[] = $candidate;
+            }
+        }
+
+        wp_nonce_field('transiti_rivista_related_posts_order', 'transiti_rivista_related_posts_order_nonce');
+
+        echo '<p>' . esc_html__('Seleziona e ordina gli articoli associati. L ordine determina la priorita.', 'transiti') . '</p>';
+        echo '<input type="hidden" id="transiti-rivista-related-order" name="transiti_rivista_related_order" value="' . esc_attr(implode(',', $savedOrder)) . '">';
+        echo '<ul id="transiti-rivista-related-list" style="margin:0;padding:0;list-style:none;">';
+
+        foreach ($orderedPosts as $orderedPost) {
+            $postId = (int) $orderedPost->ID;
+            $authorName = get_the_author_meta('display_name', (int) $orderedPost->post_author);
+            $authorProfession = '';
+            if (function_exists('get_field')) {
+                $authorProfession = trim((string) get_field('transiti_user_professione', 'user_' . (int) $orderedPost->post_author));
+            }
+            $sezioni = get_the_terms($postId, 'sezioni');
+            $sezioneName = '';
+            if (is_array($sezioni) && ! empty($sezioni) && $sezioni[0] instanceof \WP_Term) {
+                $sezioneName = (string) $sezioni[0]->name;
+            }
+            echo '<li data-post-id="' . esc_attr((string) $postId) . '" style="display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid #ddd;margin-bottom:8px;background:#fff;cursor:move;">';
+            echo '<span class="dashicons dashicons-move" aria-hidden="true"></span>';
+            echo '<div style="display:flex;align-items:flex-start;gap:8px;margin:0;flex:1;">';
+            echo '<span>';
+            echo '<strong>' . esc_html(get_the_title($postId)) . '</strong>';
+            if ($sezioneName !== '' || $authorName !== '') {
+                echo '<br><small style="opacity:.8;">';
+                if ($sezioneName !== '') {
+                    echo esc_html($sezioneName);
+                }
+                if ($sezioneName !== '' && $authorName !== '') {
+                    echo ' / ';
+                }
+                if ($authorName !== '') {
+                    echo esc_html((string) $authorName);
+                }
+                if ($authorProfession !== '') {
+                    echo ' - ' . esc_html($authorProfession);
+                }
+                echo '</small>';
+            }
+            echo '</span>';
+            echo '</div>';
+            echo '<a href="' . esc_url(get_edit_post_link($postId, '')) . '" target="_blank" rel="noopener noreferrer">' . esc_html__('Modifica', 'transiti') . '</a>';
+            echo '</li>';
+        }
+
+        if (empty($orderedPosts)) {
+            echo '<li style="padding:10px 12px;border:1px solid #ddd;background:#fff;">' . esc_html__('Nessun articolo associato a questa rivista.', 'transiti') . '</li>';
+        }
+
+        echo '</ul>';
+        ?>
+        <script>
+            (function ($) {
+                var list = $('#transiti-rivista-related-list');
+                var input = $('#transiti-rivista-related-order');
+                if (!list.length || !input.length) {
+                    return;
+                }
+
+                var updateOrder = function () {
+                    var ids = [];
+                    list.find('li[data-post-id]').each(function () {
+                        ids.push(String($(this).data('post-id')));
+                    });
+                    input.val(ids.join(','));
+                };
+
+                if (typeof list.sortable === 'function') {
+                    list.sortable({
+                        axis: 'y',
+                        items: 'li[data-post-id]',
+                        containment: 'parent',
+                        update: updateOrder
+                    });
+                }
+
+                updateOrder();
+            })(jQuery);
+        </script>
+        <?php
+    }
+
+    public static function saveRivistaAssociatedPostsMetabox(int $postId): void
+    {
+        if (wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
+            return;
+        }
+
+        if (! isset($_POST['transiti_rivista_related_posts_order_nonce']) || ! wp_verify_nonce((string) $_POST['transiti_rivista_related_posts_order_nonce'], 'transiti_rivista_related_posts_order')) {
+            return;
+        }
+
+        if (! current_user_can('edit_post', $postId)) {
+            return;
+        }
+
+        $rawOrder = isset($_POST['transiti_rivista_related_order']) ? (string) $_POST['transiti_rivista_related_order'] : '';
+        $candidateIds = array_filter(array_map('intval', array_map('trim', explode(',', $rawOrder))));
+
+        if (empty($candidateIds)) {
+            delete_post_meta($postId, '_transiti_rivista_related_posts_order');
+            return;
+        }
+
+        $validAssociatedIds = get_posts(
+            array(
+                'post_type'              => 'post',
+                'post_status'            => 'publish',
+                'posts_per_page'         => -1,
+                'fields'                 => 'ids',
+                'no_found_rows'          => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'meta_query'             => array(
+                    array(
+                        'key'     => 'post_rivista_assoc',
+                        'value'   => (int) $postId,
+                        'compare' => '=',
+                    ),
+                ),
+            )
+        );
+
+        $validAssociatedIds = array_map('intval', is_array($validAssociatedIds) ? $validAssociatedIds : array());
+        $ordered = array_values(array_intersect($candidateIds, $validAssociatedIds));
+
+        if (empty($ordered)) {
+            delete_post_meta($postId, '_transiti_rivista_related_posts_order');
+            return;
+        }
+
+        update_post_meta($postId, '_transiti_rivista_related_posts_order', $ordered);
+    }
+
+    public static function syncRivistaForumInAsgaros(int $postId, \WP_Post $post, bool $update): void
+    {
+        self::logRivistaForumSync('START', array('post_id' => $postId, 'status' => (string) $post->post_status, 'update' => $update ? '1' : '0'));
+
+        try {
+            if (wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
+                self::logRivistaForumSync('SKIP_AUTOSAVE_OR_REVISION', array('post_id' => $postId));
+                return;
+            }
+
+            if ($post->post_type !== 'rivista' || $post->post_status !== 'publish') {
+                self::logRivistaForumSync('SKIP_NOT_PUBLISHED_RIVISTA', array('post_id' => $postId, 'post_type' => (string) $post->post_type, 'status' => (string) $post->post_status));
+                return;
+            }
+
+            if (! class_exists('AsgarosForum')) {
+                self::logRivistaForumSync('SKIP_ASGAROS_CLASS_MISSING', array('post_id' => $postId));
+                return;
+            }
+
+            global $asgarosforum;
+            if (! $asgarosforum instanceof \AsgarosForum) {
+                self::logRivistaForumSync('SKIP_ASGAROS_GLOBAL_INVALID', array('post_id' => $postId));
+                return;
+            }
+
+            $categoryId = self::getAsgarosTransitiCategoryId();
+            if ($categoryId <= 0) {
+                self::logRivistaForumSync('SKIP_TRANSITI_CATEGORY_NOT_FOUND', array('post_id' => $postId));
+                return;
+            }
+
+            $numero = trim((string) get_post_meta($postId, 'numero', true));
+            $title = trim((string) get_the_title($postId));
+            $forumName = $numero !== '' ? ($numero . ' - ' . $title) : $title;
+            $forumName = $forumName !== '' ? $forumName : ('Rivista ' . (string) $postId);
+            $forumName = sanitize_text_field($forumName);
+            $forumName = wp_html_excerpt($forumName, 255, '');
+
+            $forumDescription = sanitize_text_field(
+                trim(
+                    wp_strip_all_tags(
+                        strip_shortcodes((string) $post->post_content)
+                    )
+                )
+            );
+            $forumDescription = wp_html_excerpt($forumDescription, 255, '');
+
+            $forumsTable = (string) $asgarosforum->tables->forums;
+            $db = $asgarosforum->db;
+            $forumId = (int) get_post_meta($postId, '_transiti_asgaros_forum_id', true);
+
+            if ($forumId > 0) {
+                $existingForumId = (int) $db->get_var(
+                    $db->prepare("SELECT id FROM {$forumsTable} WHERE id = %d LIMIT 1", $forumId)
+                );
+
+                if ($existingForumId > 0) {
+                    $updated = $db->update(
+                        $forumsTable,
+                        array(
+                            'name'         => $forumName,
+                            'description'  => $forumDescription,
+                            'parent_id'    => $categoryId,
+                            'parent_forum' => 0,
+                            'forum_status' => 'normal',
+                        ),
+                        array(
+                            'id' => $existingForumId,
+                        ),
+                        array('%s', '%s', '%d', '%d', '%s'),
+                        array('%d')
+                    );
+                    self::logRivistaForumSync('UPDATED_EXISTING_BY_META', array('post_id' => $postId, 'forum_id' => $existingForumId, 'db_result' => (string) $updated));
+                    self::syncRivistaEditorialeTopicInForum($postId, $post, $existingForumId, $asgarosforum);
+                    return;
+                }
+            }
+
+            $existingByName = (int) $db->get_var(
+                $db->prepare(
+                    "SELECT id FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0 AND name = %s LIMIT 1",
+                    $categoryId,
+                    $forumName
+                )
+            );
+
+            if ($existingByName > 0) {
+                update_post_meta($postId, '_transiti_asgaros_forum_id', $existingByName);
+                $updated = $db->update(
+                    $forumsTable,
+                    array(
+                        'description' => $forumDescription,
+                    ),
+                    array(
+                        'id' => $existingByName,
+                    ),
+                    array('%s'),
+                    array('%d')
+                );
+                self::logRivistaForumSync('LINKED_EXISTING_BY_NAME', array('post_id' => $postId, 'forum_id' => $existingByName, 'db_result' => (string) $updated));
+                self::syncRivistaEditorialeTopicInForum($postId, $post, $existingByName, $asgarosforum);
+                return;
+            }
+
+            $maxSort = (int) $db->get_var(
+                $db->prepare(
+                    "SELECT MAX(sort) FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0",
+                    $categoryId
+                )
+            );
+            $nextSort = max(1, $maxSort + 1);
+
+            $insertedForumId = (int) $asgarosforum->content->insert_forum(
+                $categoryId,
+                $forumName,
+                $forumDescription,
+                0,
+                '',
+                $nextSort,
+                'normal'
+            );
+
+            if ($insertedForumId > 0) {
+                update_post_meta($postId, '_transiti_asgaros_forum_id', $insertedForumId);
+                self::logRivistaForumSync('CREATED_FORUM', array('post_id' => $postId, 'forum_id' => $insertedForumId, 'category_id' => $categoryId));
+                self::syncRivistaEditorialeTopicInForum($postId, $post, $insertedForumId, $asgarosforum);
+                return;
+            }
+
+            self::logRivistaForumSync('INSERT_FAILED', array('post_id' => $postId, 'category_id' => $categoryId, 'forum_name' => $forumName));
+            self::logRivistaForumSync('INSERT_DB_ERROR', array('post_id' => $postId, 'db_last_error' => (string) $db->last_error, 'forum_name_length' => strlen($forumName), 'forum_description_length' => strlen($forumDescription)));
+        } catch (\Throwable $e) {
+            self::logRivistaForumSync('EXCEPTION', array('post_id' => $postId, 'message' => $e->getMessage()));
+        }
+    }
+
+    private static function syncRivistaEditorialeTopicInForum(int $postId, \WP_Post $post, int $forumId, \AsgarosForum $asgarosforum): void
+    {
+        $topicTitle = wp_html_excerpt(sanitize_text_field('Editoriale'), 255, '');
+        $topicBody = self::buildRivistaEditorialeTopicBody($postId, $post);
+        $topicBody = $topicBody !== '' ? $topicBody : $topicTitle;
+
+        $authorId = (int) $post->post_author;
+        if ($authorId <= 0) {
+            $authorId = (int) get_current_user_id();
+        }
+
+        $db = $asgarosforum->db;
+        $topicsTable = (string) $asgarosforum->tables->topics;
+        $postsTable = (string) $asgarosforum->tables->posts;
+
+        $topicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
+        if ($topicId > 0) {
+            $existingTopicId = (int) $db->get_var(
+                $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d AND parent_id = %d LIMIT 1", $topicId, $forumId)
+            );
+
+            if ($existingTopicId > 0) {
+                $db->update(
+                    $topicsTable,
+                    array(
+                        'name'   => $topicTitle,
+                        'sticky' => 1,
+                    ),
+                    array(
+                        'id' => $existingTopicId,
+                    ),
+                    array('%s', '%d'),
+                    array('%d')
+                );
+
+                $firstPostId = (int) $db->get_var(
+                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $existingTopicId)
+                );
+
+                if ($firstPostId > 0) {
+                    $db->update(
+                        $postsTable,
+                        array(
+                            'text'    => $topicBody,
+                            'forum_id'=> $forumId,
+                        ),
+                        array(
+                            'id' => $firstPostId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
+                    );
+                    update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
+                    self::logRivistaForumSync('UPDATED_EDITORIALE_TOPIC', array('post_id' => $postId, 'forum_id' => $forumId, 'topic_id' => $existingTopicId, 'post_id_topic' => $firstPostId));
+                    return;
+                }
+
+                $newPostId = (int) $asgarosforum->content->insert_post($existingTopicId, $forumId, $topicBody, $authorId, array());
+                if ($newPostId > 0) {
+                    update_post_meta($postId, '_transiti_asgaros_topic_post_id', $newPostId);
+                    self::logRivistaForumSync('INSERTED_EDITORIALE_POST_IN_TOPIC', array('post_id' => $postId, 'forum_id' => $forumId, 'topic_id' => $existingTopicId, 'post_id_topic' => $newPostId));
+                    return;
+                }
+            }
+        }
+
+        $existingByTitle = (int) $db->get_var(
+            $db->prepare("SELECT id FROM {$topicsTable} WHERE parent_id = %d AND name = %s ORDER BY id ASC LIMIT 1", $forumId, $topicTitle)
+        );
+
+        if ($existingByTitle > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_id', $existingByTitle);
+            $db->update(
+                $topicsTable,
+                array(
+                    'name'   => $topicTitle,
+                    'sticky' => 1,
+                ),
+                array(
+                    'id' => $existingByTitle,
+                ),
+                array('%s', '%d'),
+                array('%d')
+            );
+
+            $firstPostId = (int) $db->get_var(
+                $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $existingByTitle)
+            );
+
+            if ($firstPostId > 0) {
+                $db->update(
+                    $postsTable,
+                    array(
+                        'text'    => $topicBody,
+                        'forum_id'=> $forumId,
+                    ),
+                    array(
+                        'id' => $firstPostId,
+                    ),
+                    array('%s', '%d'),
+                    array('%d')
+                );
+                update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
+                self::logRivistaForumSync('LINKED_EXISTING_EDITORIALE_TOPIC', array('post_id' => $postId, 'forum_id' => $forumId, 'topic_id' => $existingByTitle, 'post_id_topic' => $firstPostId));
+                return;
+            }
+        }
+
+        $inserted = $asgarosforum->content->insert_topic($forumId, $topicTitle, $topicBody, $authorId, array());
+        $newTopicId = (int) ($inserted->topic_id ?? 0);
+        $newPostId = (int) ($inserted->post_id ?? 0);
+
+        if ($newTopicId > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_id', $newTopicId);
+            $db->update(
+                $topicsTable,
+                array(
+                    'sticky' => 1,
+                ),
+                array(
+                    'id' => $newTopicId,
+                ),
+                array('%d'),
+                array('%d')
+            );
+        }
+        if ($newPostId > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_post_id', $newPostId);
+        }
+
+        self::logRivistaForumSync('CREATED_EDITORIALE_TOPIC', array('post_id' => $postId, 'forum_id' => $forumId, 'topic_id' => $newTopicId, 'post_id_topic' => $newPostId));
+    }
+
+    private static function buildRivistaEditorialeTopicBody(int $postId, \WP_Post $post): string
+    {
+        $parts = array();
+
+        $thumbnailId = (int) get_post_thumbnail_id($postId);
+        $featuredImageUrl = '';
+        if ($thumbnailId > 0) {
+            $featuredImageUrl = (string) wp_get_attachment_image_url($thumbnailId, 'medium');
+            if ($featuredImageUrl === '') {
+                $featuredImageUrl = (string) wp_get_attachment_image_url($thumbnailId, 'thumbnail');
+            }
+        }
+        if ($featuredImageUrl !== '') {
+            $safeImageUrl = esc_url_raw($featuredImageUrl);
+            $parts[] = '<img src="' . $safeImageUrl . '" alt="" data-mce-src="' . $safeImageUrl . '">';
+        }
+
+        $content = trim((string) $post->post_content);
+        if ($content !== '') {
+            $parts[] = $content;
+        }
+
+        return trim(implode("\n\n", $parts));
+    }
+
+    public static function createAsgarosTopicForPostOnPublish(string $newStatus, string $oldStatus, \WP_Post $post): void
+    {
+        if ($newStatus !== 'publish' || $oldStatus === 'publish') {
+            return;
+        }
+
+        self::maybeCreateAsgarosTopicForPost($post);
+    }
+
+    public static function ensureAsgarosTopicForPublishedPostOnSave(int $postId, \WP_Post $post, bool $update): void
+    {
+        if (wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
+            return;
+        }
+
+        if ($post->post_type !== 'post' || $post->post_status !== 'publish') {
+            return;
+        }
+
+        self::maybeCreateAsgarosTopicForPost($post);
+    }
+
+    private static function maybeCreateAsgarosTopicForPost(\WP_Post $post): void
+    {
+        if ($post->post_type !== 'post' || $post->post_status !== 'publish') {
+            return;
+        }
+
+        $postId = (int) $post->ID;
+        if ($postId <= 0 || wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
+            return;
+        }
+
+        $existingTopicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
+        if ($existingTopicId > 0) {
+            return;
+        }
+
+        if (! class_exists('AsgarosForum')) {
+            return;
+        }
+
+        global $asgarosforum;
+        if (! $asgarosforum instanceof \AsgarosForum) {
+            return;
+        }
+
+        $rivistaId = 0;
+        if (function_exists('get_field')) {
+            $rivistaId = (int) get_field('post_rivista_assoc', $postId);
+        }
+        if ($rivistaId <= 0) {
+            $rivistaId = (int) get_post_meta($postId, 'post_rivista_assoc', true);
+        }
+        if ($rivistaId <= 0) {
+            return;
+        }
+
+        $rivistaPost = get_post($rivistaId);
+        if (! $rivistaPost instanceof \WP_Post || $rivistaPost->post_type !== 'rivista' || $rivistaPost->post_status !== 'publish') {
+            return;
+        }
+
+        $forumId = (int) get_post_meta($rivistaId, '_transiti_asgaros_forum_id', true);
+        if ($forumId <= 0) {
+            self::syncRivistaForumInAsgaros($rivistaId, $rivistaPost, true);
+            $forumId = (int) get_post_meta($rivistaId, '_transiti_asgaros_forum_id', true);
+        }
+        if ($forumId <= 0) {
+            return;
+        }
+
+        $topicTitle = wp_html_excerpt(trim((string) get_the_title($postId)), 255, '');
+        if ($topicTitle === '') {
+            $topicTitle = 'Post ' . (string) $postId;
+        }
+
+        $topicBody = self::buildPublishedPostTopicBody($postId, $post);
+        if ($topicBody === '') {
+            $topicBody = $topicTitle;
+        }
+
+        $authorId = (int) $post->post_author;
+        if ($authorId <= 0) {
+            $authorId = (int) get_current_user_id();
+        }
+
+        $inserted = $asgarosforum->content->insert_topic($forumId, $topicTitle, $topicBody, $authorId, array());
+        $topicId = (int) ($inserted->topic_id ?? 0);
+        $topicPostId = (int) ($inserted->post_id ?? 0);
+
+        if ($topicId > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_id', $topicId);
+        }
+        if ($topicPostId > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_post_id', $topicPostId);
+        }
+    }
+
+    private static function buildPublishedPostTopicBody(int $postId, \WP_Post $post): string
+    {
+        $parts = array();
+
+        $thumbnailId = (int) get_post_thumbnail_id($postId);
+        if ($thumbnailId > 0) {
+            $featuredImageUrl = (string) wp_get_attachment_image_url($thumbnailId, array(768, 0));
+            if ($featuredImageUrl !== '') {
+                $safeImageUrl = esc_url_raw($featuredImageUrl);
+                $parts[] = '<img src="' . $safeImageUrl . '" alt="" data-mce-src="' . $safeImageUrl . '">';
+            }
+        }
+
+        $excerpt = trim((string) get_post_field('post_excerpt', $postId));
+        if ($excerpt !== '') {
+            $parts[] = $excerpt;
+        }
+
+        $content = trim((string) $post->post_content);
+        if ($content !== '') {
+            $parts[] = $content;
+        }
+
+        return trim(implode("\n\n", $parts));
+    }
+
+    private static function logRivistaForumSync(string $step, array $context = array()): void
+    {
+        return;
+    }
+
+    private static function getAsgarosTransitiCategoryId(): int
+    {
+        $category = get_term_by('slug', 'transiti', 'asgarosforum-category');
+        if ($category instanceof \WP_Term) {
+            return (int) $category->term_id;
+        }
+
+        $terms = get_terms(
+            array(
+                'taxonomy'   => 'asgarosforum-category',
+                'hide_empty' => false,
+            )
+        );
+
+        if (! is_array($terms) || empty($terms)) {
+            return 0;
+        }
+
+        foreach ($terms as $term) {
+            if (! $term instanceof \WP_Term) {
+                continue;
+            }
+
+            if (strtolower((string) $term->name) === 'transiti') {
+                return (int) $term->term_id;
+            }
+        }
+
+        return 0;
     }
     public static function addViewsAdminColumn(array $columns): array
     {

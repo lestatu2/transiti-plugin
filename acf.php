@@ -12,6 +12,7 @@ add_filter('acf/load_field/key=field_transiti_destinatari_redattori', 'transiti_
 add_filter('acf/load_value/key=field_transiti_views_post_types', 'transiti_load_views_post_type_default', 10, 3);
 add_filter('acf/prepare_field', 'transiti_prepare_configurazione_fields_for_roles', 20);
 add_filter('acf/fields/post_object/query/key=field_transiti_home_featured_post', 'transiti_filter_home_featured_post_query', 10, 3);
+add_filter('acf/prepare_field/key=field_transiti_editoriale_firma_autore_post', 'transiti_prepare_editoriale_firma_field');
 add_filter('acf/prepare_field/key=field_transiti_user_professione', 'transiti_prepare_redattore_profile_field');
 add_filter('acf/prepare_field/key=field_transiti_user_bio', 'transiti_prepare_redattore_profile_field');
 
@@ -402,22 +403,6 @@ function transiti_register_acf_configuration_fields(): void
                 'return_format' => 'Y-m-d',
                 'first_day' => 1,
             ),
-            array(
-                'key' => 'field_transiti_rivista_argomenti',
-                'label' => __('Argomenti', 'transiti'),
-                'name' => 'argomenti',
-                'type' => 'repeater',
-                'layout' => 'table',
-                'button_label' => __('Aggiungi argomento', 'transiti'),
-                'sub_fields' => array(
-                    array(
-                        'key' => 'field_transiti_rivista_argomento_titolo',
-                        'label' => __('Argomento', 'transiti'),
-                        'name' => 'argomento',
-                        'type' => 'text',
-                    ),
-                ),
-            ),
         ),
         'location' => array(
             array(
@@ -684,6 +669,18 @@ function transiti_register_acf_configuration_fields(): void
                 'append' => __('minuti', 'transiti'),
             ),
             array(
+                'key' => 'field_transiti_post_rivista_assoc',
+                'label' => __('Rivista associata', 'transiti'),
+                'name' => 'post_rivista_assoc',
+                'type' => 'post_object',
+                'post_type' => array('rivista'),
+                'post_status' => array('publish'),
+                'return_format' => 'id',
+                'ui' => 1,
+                'allow_null' => 1,
+                'multiple' => 0,
+            ),
+            array(
                 'key' => 'field_transiti_editoriale_firma_autore_post',
                 'label' => __('Firma editoriale con autore', 'transiti'),
                 'name' => 'editoriale_firma_autore_post',
@@ -827,13 +824,44 @@ function transiti_is_redattore_profile_user(): bool
 }
 
 /**
- * Show only Home tab/field in Configurazione for non-admin users.
+ * Show "Firma editoriale con autore" only when term "editoriale" is assigned.
  *
  * @param array<string, mixed> $field
  * @return array<string, mixed>|false
  */
-function transiti_prepare_configurazione_fields_for_roles(array $field)
+function transiti_prepare_editoriale_firma_field(array $field)
 {
+    $post_id = 0;
+
+    if (isset($_GET['post'])) {
+        $post_id = (int) $_GET['post'];
+    } elseif (isset($_POST['post_ID'])) {
+        $post_id = (int) $_POST['post_ID'];
+    }
+
+    if ($post_id <= 0) {
+        return false;
+    }
+
+    if (! has_term('editoriale', 'editoriale', $post_id)) {
+        return false;
+    }
+
+    return $field;
+}
+
+/**
+ * Show only Home tab/field in Configurazione for non-admin users.
+ *
+ * @param mixed $field
+ * @return mixed
+ */
+function transiti_prepare_configurazione_fields_for_roles($field)
+{
+    if (! is_array($field)) {
+        return $field;
+    }
+
     if (current_user_can('manage_options')) {
         return $field;
     }
