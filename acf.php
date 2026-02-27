@@ -8,7 +8,12 @@ if (! defined('ABSPATH')) {
 
 add_action('acf/init', 'transiti_register_acf_configuration_fields');
 add_filter('acf/load_field/key=field_transiti_views_post_types', 'transiti_load_views_post_type_choices');
+add_filter('acf/load_field/key=field_transiti_destinatari_redattori', 'transiti_load_destinatari_redattori_choices');
 add_filter('acf/load_value/key=field_transiti_views_post_types', 'transiti_load_views_post_type_default', 10, 3);
+add_filter('acf/prepare_field', 'transiti_prepare_configurazione_fields_for_roles', 20);
+add_filter('acf/fields/post_object/query/key=field_transiti_home_featured_post', 'transiti_filter_home_featured_post_query', 10, 3);
+add_filter('acf/prepare_field/key=field_transiti_user_professione', 'transiti_prepare_redattore_profile_field');
+add_filter('acf/prepare_field/key=field_transiti_user_bio', 'transiti_prepare_redattore_profile_field');
 
 function transiti_register_acf_configuration_fields(): void
 {
@@ -20,7 +25,7 @@ function transiti_register_acf_configuration_fields(): void
         'page_title' => __('Configurazione', 'transiti'),
         'menu_title' => __('Configurazione', 'transiti'),
         'menu_slug'  => 'transiti-configurazione',
-        'capability' => 'manage_options',
+        'capability' => 'manage_transiti_config',
         'redirect'   => false,
         'position'   => 59,
         'icon_url'   => 'dashicons-admin-generic',
@@ -30,6 +35,25 @@ function transiti_register_acf_configuration_fields(): void
         'key' => 'group_transiti_configurazione',
         'title' => __('Configurazione', 'transiti'),
         'fields' => array(
+            array(
+                'key' => 'field_transiti_tab_home',
+                'label' => __('Home', 'transiti'),
+                'name' => '',
+                'type' => 'tab',
+                'placement' => 'top',
+            ),
+            array(
+                'key' => 'field_transiti_home_featured_post',
+                'label' => __('Post in evidenza (prima colonna)', 'transiti'),
+                'name' => 'home_featured_post',
+                'type' => 'post_object',
+                'post_type' => array('post'),
+                'return_format' => 'id',
+                'ui' => 1,
+                'allow_null' => 1,
+                'multiple' => 0,
+                'instructions' => __('Se vuoto, usa l\'ultimo articolo pubblicato.', 'transiti'),
+            ),
             array(
                 'key' => 'field_transiti_tab_azienda',
                 'label' => __('Azienda', 'transiti'),
@@ -50,13 +74,65 @@ function transiti_register_acf_configuration_fields(): void
                 'type' => 'email',
             ),
             array(
+                'key' => 'field_transiti_recaptcha_site_key',
+                'label' => __('reCAPTCHA Site Key', 'transiti'),
+                'name' => 'recaptcha_site_key',
+                'type' => 'text',
+            ),
+            array(
+                'key' => 'field_transiti_recaptcha_secret_key',
+                'label' => __('reCAPTCHA Secret Key', 'transiti'),
+                'name' => 'recaptcha_secret_key',
+                'type' => 'text',
+            ),
+            array(
+                'key' => 'field_transiti_azienda_telefoni',
+                'label' => __('Telefoni', 'transiti'),
+                'name' => 'azienda_telefoni',
+                'type' => 'repeater',
+                'layout' => 'table',
+                'button_label' => __('Aggiungi telefono', 'transiti'),
+                'sub_fields' => array(
+                    array(
+                        'key' => 'field_transiti_azienda_telefono_numero',
+                        'label' => __('Telefono', 'transiti'),
+                        'name' => 'telefono',
+                        'type' => 'acfe_phone_number',
+                        'country' => 'IT',
+                        'default_country' => 'it',
+                        'default_country_code' => 'IT',
+                        'initial_country' => 'it',
+                        'preferred_countries' => array('IT'),
+                    ),
+                ),
+            ),
+            array(
+                'key' => 'field_transiti_azienda_mails',
+                'label' => __('Mails', 'transiti'),
+                'name' => 'azienda_mails',
+                'type' => 'repeater',
+                'layout' => 'table',
+                'button_label' => __('Aggiungi mail', 'transiti'),
+                'sub_fields' => array(
+                    array(
+                        'key' => 'field_transiti_azienda_mail_indirizzo',
+                        'label' => __('Mail', 'transiti'),
+                        'name' => 'mail',
+                        'type' => 'email',
+                    ),
+                ),
+            ),
+            array(
                 'key' => 'field_transiti_azienda_indirizzo',
                 'label' => __('Indirizzo', 'transiti'),
                 'name' => 'azienda_indirizzo',
-                'type' => 'textarea',
-                'rows' => 3,
-                'new_lines' => 'br',
-            ),            array(
+                'type' => 'google_map',
+                'center_lat' => '41.902782',
+                'center_lng' => '12.496366',
+                'zoom' => 14,
+                'height' => 400,
+            ),
+            array(
                 'key' => 'field_transiti_mission',
                 'label' => __('Mission', 'transiti'),
                 'name' => 'mission',
@@ -64,6 +140,24 @@ function transiti_register_acf_configuration_fields(): void
                 'tabs' => 'all',
                 'toolbar' => 'full',
                 'media_upload' => 1,
+            ),
+            array(
+                'key' => 'field_transiti_mission_footer',
+                'label' => __('Mission Footer', 'transiti'),
+                'name' => 'mission_footer',
+                'type' => 'wysiwyg',
+                'tabs' => 'all',
+                'toolbar' => 'full',
+                'media_upload' => 1,
+            ),
+            array(
+                'key' => 'field_transiti_editoriale_firma_autore',
+                'label' => __('Firma editoriale con autore', 'transiti'),
+                'name' => 'editoriale_firma_autore',
+                'type' => 'true_false',
+                'ui' => 1,
+                'default_value' => 1,
+                'message' => __('Sì = autore del post, No = Redazione', 'transiti'),
             ),
             array(
                 'key' => 'field_transiti_social_networks',
@@ -99,6 +193,99 @@ function transiti_register_acf_configuration_fields(): void
                         'type' => 'url',
                     ),
                 ),
+            ),
+            array(
+                'key' => 'field_transiti_tab_casa_editrice',
+                'label' => __('Casa Editrice', 'transiti'),
+                'name' => '',
+                'type' => 'tab',
+                'placement' => 'top',
+            ),
+            array(
+                'key' => 'field_transiti_casa_editrice_immagine',
+                'label' => __('Immagine Casa Editrice', 'transiti'),
+                'name' => 'casa_editrice_immagine',
+                'type' => 'image',
+                'return_format' => 'id',
+                'preview_size' => 'medium',
+                'library' => 'all',
+            ),
+            array(
+                'key' => 'field_transiti_casa_editrice_link_sito',
+                'label' => __('Link Sito Casa Editrice', 'transiti'),
+                'name' => 'casa_editrice_link_sito',
+                'type' => 'url',
+            ),
+            array(
+                'key' => 'field_transiti_casa_editrice_descrizione',
+                'label' => __('Descrizione Casa Editrice', 'transiti'),
+                'name' => 'casa_editrice_descrizione',
+                'type' => 'textarea',
+                'rows' => 4,
+                'new_lines' => 'br',
+            ),
+            array(
+                'key' => 'field_transiti_casa_editrice_indirizzo',
+                'label' => __('Indirizzo Casa Editrice', 'transiti'),
+                'name' => 'casa_editrice_indirizzo',
+                'type' => 'google_map',
+                'center_lat' => '41.902782',
+                'center_lng' => '12.496366',
+                'zoom' => 14,
+                'height' => 400,
+            ),
+            array(
+                'key' => 'field_transiti_casa_editrice_social_networks',
+                'label' => __('Social Network Casa Editrice', 'transiti'),
+                'name' => 'casa_editrice_social_networks',
+                'type' => 'repeater',
+                'layout' => 'table',
+                'button_label' => __('Aggiungi social', 'transiti'),
+                'sub_fields' => array(
+                    array(
+                        'key' => 'field_transiti_casa_editrice_social_name',
+                        'label' => __('Social', 'transiti'),
+                        'name' => 'social',
+                        'type' => 'select',
+                        'ui' => 1,
+                        'return_format' => 'value',
+                        'choices' => array(
+                            'facebook' => 'Facebook',
+                            'instagram' => 'Instagram',
+                            'linkedin' => 'LinkedIn',
+                            'youtube' => 'YouTube',
+                            'tiktok' => 'TikTok',
+                            'x' => 'X',
+                            'whatsapp' => 'WhatsApp',
+                            'telegram' => 'Telegram',
+                            'pinterest' => 'Pinterest',
+                        ),
+                    ),
+                    array(
+                        'key' => 'field_transiti_casa_editrice_social_link',
+                        'label' => __('Link', 'transiti'),
+                        'name' => 'link',
+                        'type' => 'url',
+                    ),
+                ),
+            ),
+            array(
+                'key' => 'field_transiti_tab_destinatari',
+                'label' => __('Destinatari', 'transiti'),
+                'name' => '',
+                'type' => 'tab',
+                'placement' => 'top',
+            ),
+            array(
+                'key' => 'field_transiti_destinatari_redattori',
+                'label' => __('Redattori notificati per revisioni autore', 'transiti'),
+                'name' => 'destinatari_redattori',
+                'type' => 'checkbox',
+                'choices' => array(),
+                'layout' => 'vertical',
+                'return_format' => 'value',
+                'allow_custom' => 0,
+                'save_custom' => 0,
             ),
             array(
                 'key' => 'field_transiti_tab_views',
@@ -216,20 +403,13 @@ function transiti_register_acf_configuration_fields(): void
                 'first_day' => 1,
             ),
             array(
-                'key' => 'field_transiti_rivista_argomenti',
-                'label' => __('Argomenti', 'transiti'),
-                'name' => 'argomenti',
-                'type' => 'repeater',
-                'layout' => 'table',
-                'button_label' => __('Aggiungi argomento', 'transiti'),
-                'sub_fields' => array(
-                    array(
-                        'key' => 'field_transiti_rivista_argomento_titolo',
-                        'label' => __('Argomento', 'transiti'),
-                        'name' => 'argomento',
-                        'type' => 'text',
-                    ),
-                ),
+                'key' => 'field_transiti_editoriale_firma_autore_rivista',
+                'label' => __('Firma editoriale con autore', 'transiti'),
+                'name' => 'editoriale_firma_autore_rivista',
+                'type' => 'true_false',
+                'ui' => 1,
+                'default_value' => 1,
+                'message' => __('Si = autore della rivista, No = Redazione', 'transiti'),
             ),
         ),
         'location' => array(
@@ -275,6 +455,30 @@ function transiti_register_acf_configuration_fields(): void
                         'name' => 'descrizione',
                         'type' => 'textarea',
                         'rows' => 3,
+                    ),
+                    array(
+                        'key' => 'field_transiti_podcast_episodio_durata_minuti',
+                        'label' => __('Durata (minuti)', 'transiti'),
+                        'name' => 'durata_minuti',
+                        'type' => 'number',
+                        'min' => 0,
+                        'step' => 1,
+                    ),
+                    array(
+                        'key' => 'field_transiti_podcast_episodio_relatori',
+                        'label' => __('Relatori', 'transiti'),
+                        'name' => 'relatori',
+                        'type' => 'repeater',
+                        'layout' => 'table',
+                        'button_label' => __('Aggiungi relatore', 'transiti'),
+                        'sub_fields' => array(
+                            array(
+                                'key' => 'field_transiti_podcast_episodio_relatore_nome',
+                                'label' => __('Relatore', 'transiti'),
+                                'name' => 'relatore',
+                                'type' => 'text',
+                            ),
+                        ),
                     ),
                     array(
                         'key' => 'field_transiti_podcast_episodio_tipo_media',
@@ -398,6 +602,55 @@ function transiti_register_acf_configuration_fields(): void
                 'preview_size' => 'thumbnail',
                 'library' => 'all',
             ),
+            array(
+                'key' => 'field_transiti_user_professione',
+                'label' => __('Professione', 'transiti'),
+                'name' => 'transiti_user_professione',
+                'type' => 'text',
+            ),
+            array(
+                'key' => 'field_transiti_user_bio',
+                'label' => __('Bio', 'transiti'),
+                'name' => 'transiti_user_bio',
+                'type' => 'textarea',
+                'rows' => 5,
+                'new_lines' => 'br',
+            ),
+            array(
+                'key' => 'field_transiti_user_social_networks',
+                'label' => __('Social Network', 'transiti'),
+                'name' => 'transiti_user_social_networks',
+                'type' => 'repeater',
+                'layout' => 'table',
+                'button_label' => __('Aggiungi social', 'transiti'),
+                'sub_fields' => array(
+                    array(
+                        'key' => 'field_transiti_user_social_name',
+                        'label' => __('Social', 'transiti'),
+                        'name' => 'social',
+                        'type' => 'select',
+                        'ui' => 1,
+                        'return_format' => 'value',
+                        'choices' => array(
+                            'facebook' => 'Facebook',
+                            'instagram' => 'Instagram',
+                            'linkedin' => 'LinkedIn',
+                            'youtube' => 'YouTube',
+                            'tiktok' => 'TikTok',
+                            'x' => 'X',
+                            'whatsapp' => 'WhatsApp',
+                            'telegram' => 'Telegram',
+                            'pinterest' => 'Pinterest',
+                        ),
+                    ),
+                    array(
+                        'key' => 'field_transiti_user_social_link',
+                        'label' => __('Link', 'transiti'),
+                        'name' => 'link',
+                        'type' => 'url',
+                    ),
+                ),
+            ),
         ),
         'location' => array(
             array(
@@ -422,6 +675,18 @@ function transiti_register_acf_configuration_fields(): void
                 'min' => 1,
                 'step' => 1,
                 'append' => __('minuti', 'transiti'),
+            ),
+            array(
+                'key' => 'field_transiti_post_rivista_assoc',
+                'label' => __('Rivista associata', 'transiti'),
+                'name' => 'post_rivista_assoc',
+                'type' => 'post_object',
+                'post_type' => array('rivista'),
+                'post_status' => array('publish'),
+                'return_format' => 'id',
+                'ui' => 1,
+                'allow_null' => 1,
+                'multiple' => 0,
             ),
         ),
         'location' => array(
@@ -480,3 +745,131 @@ function transiti_load_views_post_type_default($value, $post_id, array $field)
 
     return $value;
 }
+
+function transiti_load_destinatari_redattori_choices(array $field): array
+{
+    $field['choices'] = array();
+
+    $redattori = get_users(
+        array(
+            'role'    => 'redattore',
+            'orderby' => 'display_name',
+            'order'   => 'ASC',
+            'fields'  => 'all',
+        )
+    );
+
+    if (! is_array($redattori)) {
+        return $field;
+    }
+
+    foreach ($redattori as $redattore) {
+        $user_id = isset($redattore->ID) ? (int) $redattore->ID : 0;
+        if ($user_id <= 0) {
+            continue;
+        }
+
+        $label = isset($redattore->display_name) ? trim((string) $redattore->display_name) : '';
+        $email = isset($redattore->user_email) ? trim((string) $redattore->user_email) : '';
+        if ($email !== '') {
+            $label .= ' (' . $email . ')';
+        }
+
+        $field['choices'][(string) $user_id] = $label;
+    }
+
+    return $field;
+}
+
+/**
+ * Hide profile fields unless the edited user has role editor/redattore/author.
+ *
+ * @param array<string, mixed> $field
+ * @return array<string, mixed>|false
+ */
+function transiti_prepare_redattore_profile_field(array $field)
+{
+    if (transiti_is_redattore_profile_user()) {
+        return $field;
+    }
+
+    return false;
+}
+
+function transiti_is_redattore_profile_user(): bool
+{
+    $user_id = 0;
+
+    if (isset($_GET['user_id'])) {
+        $user_id = absint(wp_unslash($_GET['user_id']));
+    } elseif (isset($_POST['user_id'])) {
+        $user_id = absint(wp_unslash($_POST['user_id']));
+    } else {
+        $user_id = get_current_user_id();
+    }
+
+    if ($user_id <= 0) {
+        return false;
+    }
+
+    $user = get_userdata($user_id);
+    if (! $user instanceof WP_User) {
+        return false;
+    }
+
+    $roles = (array) $user->roles;
+
+    return in_array('editor', $roles, true) || in_array('redattore', $roles, true) || in_array('author', $roles, true);
+}
+
+/**
+ * Show only Home tab/field in Configurazione for non-admin users.
+ *
+ * @param mixed $field
+ * @return mixed
+ */
+function transiti_prepare_configurazione_fields_for_roles($field)
+{
+    if (! is_array($field)) {
+        return $field;
+    }
+
+    if (current_user_can('manage_options')) {
+        return $field;
+    }
+
+    $parent = isset($field['parent']) ? (string) $field['parent'] : '';
+    if ($parent !== 'group_transiti_configurazione') {
+        return $field;
+    }
+
+    $allowed_keys = array(
+        'field_transiti_tab_home',
+        'field_transiti_home_featured_post',
+    );
+
+    $field_key = isset($field['key']) ? (string) $field['key'] : '';
+    if (in_array($field_key, $allowed_keys, true)) {
+        return $field;
+    }
+
+    return false;
+}
+
+/**
+ * Keep Home featured post selector limited to published posts only.
+ *
+ * @param array<string, mixed> $args
+ * @param array<string, mixed> $field
+ * @param int|string           $post_id
+ * @return array<string, mixed>
+ */
+function transiti_filter_home_featured_post_query(array $args, array $field, $post_id): array
+{
+    $args['post_status'] = array('publish');
+
+    return $args;
+}
+
+
+
