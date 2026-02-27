@@ -12,7 +12,6 @@ add_filter('acf/load_field/key=field_transiti_destinatari_redattori', 'transiti_
 add_filter('acf/load_value/key=field_transiti_views_post_types', 'transiti_load_views_post_type_default', 10, 3);
 add_filter('acf/prepare_field', 'transiti_prepare_configurazione_fields_for_roles', 20);
 add_filter('acf/fields/post_object/query/key=field_transiti_home_featured_post', 'transiti_filter_home_featured_post_query', 10, 3);
-add_filter('acf/prepare_field/key=field_transiti_editoriale_firma_autore_post', 'transiti_prepare_editoriale_firma_field');
 add_filter('acf/prepare_field/key=field_transiti_user_professione', 'transiti_prepare_redattore_profile_field');
 add_filter('acf/prepare_field/key=field_transiti_user_bio', 'transiti_prepare_redattore_profile_field');
 
@@ -26,7 +25,7 @@ function transiti_register_acf_configuration_fields(): void
         'page_title' => __('Configurazione', 'transiti'),
         'menu_title' => __('Configurazione', 'transiti'),
         'menu_slug'  => 'transiti-configurazione',
-        'capability' => 'manage_editoriale_terms',
+        'capability' => 'manage_transiti_config',
         'redirect'   => false,
         'position'   => 59,
         'icon_url'   => 'dashicons-admin-generic',
@@ -403,6 +402,15 @@ function transiti_register_acf_configuration_fields(): void
                 'return_format' => 'Y-m-d',
                 'first_day' => 1,
             ),
+            array(
+                'key' => 'field_transiti_editoriale_firma_autore_rivista',
+                'label' => __('Firma editoriale con autore', 'transiti'),
+                'name' => 'editoriale_firma_autore_rivista',
+                'type' => 'true_false',
+                'ui' => 1,
+                'default_value' => 1,
+                'message' => __('Si = autore della rivista, No = Redazione', 'transiti'),
+            ),
         ),
         'location' => array(
             array(
@@ -680,15 +688,6 @@ function transiti_register_acf_configuration_fields(): void
                 'allow_null' => 1,
                 'multiple' => 0,
             ),
-            array(
-                'key' => 'field_transiti_editoriale_firma_autore_post',
-                'label' => __('Firma editoriale con autore', 'transiti'),
-                'name' => 'editoriale_firma_autore_post',
-                'type' => 'true_false',
-                'ui' => 1,
-                'default_value' => 1,
-                'message' => __('Sì = autore del post, No = Redazione', 'transiti'),
-            ),
         ),
         'location' => array(
             array(
@@ -824,33 +823,6 @@ function transiti_is_redattore_profile_user(): bool
 }
 
 /**
- * Show "Firma editoriale con autore" only when term "editoriale" is assigned.
- *
- * @param array<string, mixed> $field
- * @return array<string, mixed>|false
- */
-function transiti_prepare_editoriale_firma_field(array $field)
-{
-    $post_id = 0;
-
-    if (isset($_GET['post'])) {
-        $post_id = (int) $_GET['post'];
-    } elseif (isset($_POST['post_ID'])) {
-        $post_id = (int) $_POST['post_ID'];
-    }
-
-    if ($post_id <= 0) {
-        return false;
-    }
-
-    if (! has_term('editoriale', 'editoriale', $post_id)) {
-        return false;
-    }
-
-    return $field;
-}
-
-/**
  * Show only Home tab/field in Configurazione for non-admin users.
  *
  * @param mixed $field
@@ -885,7 +857,7 @@ function transiti_prepare_configurazione_fields_for_roles($field)
 }
 
 /**
- * Exclude "editoriale" posts from Home featured post selector.
+ * Keep Home featured post selector limited to published posts only.
  *
  * @param array<string, mixed> $args
  * @param array<string, mixed> $field
@@ -895,14 +867,9 @@ function transiti_prepare_configurazione_fields_for_roles($field)
 function transiti_filter_home_featured_post_query(array $args, array $field, $post_id): array
 {
     $args['post_status'] = array('publish');
-    $args['tax_query'] = array(
-        array(
-            'taxonomy' => 'editoriale',
-            'field'    => 'slug',
-            'terms'    => array('editoriale'),
-            'operator' => 'NOT IN',
-        ),
-    );
 
     return $args;
 }
+
+
+

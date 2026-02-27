@@ -17,7 +17,7 @@ final class Plugin
         add_action('init', [self::class, 'registerPostTypes']);
         add_action('init', [self::class, 'registerTaxonomies']);
         add_action('init', [self::class, 'registerRoles'], 5);
-        add_action('init', [self::class, 'ensureEditorialeTerm'], 20);
+        add_action('init', [self::class, 'ensureRivistaCategoryTerms'], 25);
         add_action('wp_ajax_transiti_track_post_view', [self::class, 'trackPostViewAjax']);
         add_action('wp_ajax_nopriv_transiti_track_post_view', [self::class, 'trackPostViewAjax']);
         add_action('wp_enqueue_scripts', [self::class, 'enqueueFrontendAssets']);
@@ -55,7 +55,6 @@ final class Plugin
         add_action('transition_post_status', [self::class, 'initializeViewsCountOnFirstPublish'], 20, 3);
         add_action('transition_post_status', [self::class, 'createAsgarosTopicForPostOnPublish'], 30, 3);
         add_action('transition_post_status', [self::class, 'notifyRedattoriOnAuthorReview'], 20, 3);
-        add_action('add_meta_boxes_post', [self::class, 'reorderEditorialeMetabox'], 99);
     }
 
     public static function activate(): void
@@ -68,7 +67,7 @@ final class Plugin
         self::ensureProfilePage();
         self::ensureAboutPage();
         self::ensureSezioniTerms();
-        self::ensureEditorialeTerm();
+        self::ensureRivistaCategoryTerms();
         self::ensureSezioniTermsInMainMenu();
         self::ensureForumPageInMainMenuAfterSezioni();
         self::ensurePodcastArchiveInMainMenuAfterForum();
@@ -131,7 +130,8 @@ final class Plugin
                 'show_in_rest'        => true,
                 'menu_position'       => 22,
                 'menu_icon'           => 'dashicons-book-alt',
-                'supports'            => array('title', 'editor', 'thumbnail', 'author'),
+                'supports'            => array('title', 'editor', 'excerpt', 'thumbnail', 'author'),
+                'taxonomies'          => array('category'),
                 'has_archive'         => true,
                 'rewrite'             => array('slug' => 'rivista'),
                 'exclude_from_search' => false,
@@ -191,6 +191,8 @@ final class Plugin
 
     public static function registerTaxonomies(): void
     {
+        register_taxonomy_for_object_type('category', 'rivista');
+
         register_taxonomy(
             'sezioni',
             array('post'),
@@ -217,36 +219,6 @@ final class Plugin
                     'edit_terms'   => 'manage_options',
                     'delete_terms' => 'manage_options',
                     'assign_terms' => 'edit_posts',
-                ),
-            )
-        );
-
-        register_taxonomy(
-            'editoriale',
-            array('post'),
-            array(
-                'labels' => array(
-                    'name'          => __('Editoriale', 'transiti'),
-                    'singular_name' => __('Editoriale', 'transiti'),
-                    'search_items'  => __('Cerca editoriali', 'transiti'),
-                    'all_items'     => __('Tutti gli editoriali', 'transiti'),
-                    'edit_item'     => __('Modifica editoriale', 'transiti'),
-                    'update_item'   => __('Aggiorna editoriale', 'transiti'),
-                    'add_new_item'  => __('Aggiungi editoriale', 'transiti'),
-                    'new_item_name' => __('Nuovo editoriale', 'transiti'),
-                    'menu_name'     => __('Editoriale', 'transiti'),
-                ),
-                'public'            => false,
-                'hierarchical'      => true,
-                'show_ui'           => true,
-                'show_admin_column' => true,
-                'show_in_rest'      => true,
-                'rewrite'           => false,
-                'capabilities'      => array(
-                    'manage_terms' => 'manage_editoriale_terms',
-                    'edit_terms'   => 'manage_editoriale_terms',
-                    'delete_terms' => 'manage_editoriale_terms',
-                    'assign_terms' => 'manage_editoriale_terms',
                 ),
             )
         );
@@ -319,11 +291,6 @@ final class Plugin
 
                 function reorderBoxes() {
                     var sezioniBox = document.getElementById('sezionidiv');
-                    var editorialeBox = document.getElementById('editorialediv');
-                    if (sezioniBox && editorialeBox && sezioniBox.parentNode === editorialeBox.parentNode) {
-                        sezioniBox.parentNode.insertBefore(editorialeBox, sezioniBox.nextSibling);
-                    }
-
                     var acfBox = document.getElementById('acf-group_transiti_post_meta');
                     var normalSortables = document.getElementById('normal-sortables');
                     if (acfBox && normalSortables && acfBox.parentNode !== normalSortables) {
@@ -572,24 +539,6 @@ final class Plugin
         }
 
         update_option($optionKey, $logs, false);
-    }
-
-
-    public static function reorderEditorialeMetabox(): void
-    {
-        remove_meta_box('editorialediv', 'post', 'side');
-
-        add_meta_box(
-            'editorialediv',
-            __('Editoriale', 'transiti'),
-            'post_categories_meta_box',
-            'post',
-            'side',
-            'low',
-            array(
-                'taxonomy' => 'editoriale',
-            )
-        );
     }
 
 
@@ -1163,6 +1112,11 @@ final class Plugin
             $parts[] = '<img src="' . $safeImageUrl . '" alt="" data-mce-src="' . $safeImageUrl . '">';
         }
 
+        $excerpt = trim((string) $post->post_excerpt);
+        if ($excerpt !== '') {
+            $parts[] = wp_kses_post($excerpt);
+        }
+
         $content = trim((string) $post->post_content);
         if ($content !== '') {
             $parts[] = $content;
@@ -1201,11 +1155,6 @@ final class Plugin
 
         $postId = (int) $post->ID;
         if ($postId <= 0 || wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
-            return;
-        }
-
-        $existingTopicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
-        if ($existingTopicId > 0) {
             return;
         }
 
@@ -1256,6 +1205,59 @@ final class Plugin
         $authorId = (int) $post->post_author;
         if ($authorId <= 0) {
             $authorId = (int) get_current_user_id();
+        }
+
+        $db = $asgarosforum->db;
+        $topicsTable = (string) $asgarosforum->tables->topics;
+        $postsTable = (string) $asgarosforum->tables->posts;
+
+        $existingTopicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
+        if ($existingTopicId > 0) {
+            $confirmedTopicId = (int) $db->get_var(
+                $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d LIMIT 1", $existingTopicId)
+            );
+
+            if ($confirmedTopicId > 0) {
+                $db->update(
+                    $topicsTable,
+                    array(
+                        'name'      => $topicTitle,
+                        'parent_id' => $forumId,
+                    ),
+                    array(
+                        'id' => $confirmedTopicId,
+                    ),
+                    array('%s', '%d'),
+                    array('%d')
+                );
+
+                $firstPostId = (int) $db->get_var(
+                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $confirmedTopicId)
+                );
+
+                if ($firstPostId > 0) {
+                    $db->update(
+                        $postsTable,
+                        array(
+                            'text'     => $topicBody,
+                            'forum_id' => $forumId,
+                        ),
+                        array(
+                            'id' => $firstPostId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
+                    );
+                    update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
+                    return;
+                }
+
+                $newPostId = (int) $asgarosforum->content->insert_post($confirmedTopicId, $forumId, $topicBody, $authorId, array());
+                if ($newPostId > 0) {
+                    update_post_meta($postId, '_transiti_asgaros_topic_post_id', $newPostId);
+                    return;
+                }
+            }
         }
 
         $inserted = $asgarosforum->content->insert_topic($forumId, $topicTitle, $topicBody, $authorId, array());
@@ -1648,30 +1650,43 @@ final class Plugin
         }
 
         $administrator = get_role('administrator');
-        if ($administrator instanceof \WP_Role && ! $administrator->has_cap('manage_editoriale_terms')) {
-            $administrator->add_cap('manage_editoriale_terms');
+        if ($administrator instanceof \WP_Role && ! $administrator->has_cap('manage_transiti_config')) {
+            $administrator->add_cap('manage_transiti_config');
         }
 
         $redattore = get_role('redattore');
-        if ($redattore instanceof \WP_Role && ! $redattore->has_cap('manage_editoriale_terms')) {
-            $redattore->add_cap('manage_editoriale_terms');
+        if ($redattore instanceof \WP_Role && ! $redattore->has_cap('manage_transiti_config')) {
+            $redattore->add_cap('manage_transiti_config');
         }
     }
 
-    public static function ensureEditorialeTerm(): void
+    public static function ensureRivistaCategoryTerms(): void
     {
-        if (term_exists('editoriale', 'editoriale')) {
+        if (! taxonomy_exists('category')) {
             return;
         }
 
-        wp_insert_term(
-            'editoriale',
-            'editoriale',
-            array(
-                'slug' => 'editoriale',
-            )
+        $requiredTerms = array(
+            array('name' => 'Società', 'slug' => 'societa'),
+            array('name' => 'Letteratura', 'slug' => 'letteratura'),
+            array('name' => 'Cinema', 'slug' => 'cinema'),
         );
+
+        foreach ($requiredTerms as $requiredTerm) {
+            $slug = (string) ($requiredTerm['slug'] ?? '');
+            $name = (string) ($requiredTerm['name'] ?? '');
+            if ($slug === '' || $name === '') {
+                continue;
+            }
+
+            if (get_term_by('slug', $slug, 'category') instanceof \WP_Term) {
+                continue;
+            }
+
+            wp_insert_term($name, 'category', array('slug' => $slug));
+        }
     }
+
     private static function ensureSezioniTerms(): void
     {
         $defaultTerms = array('Frontiere', 'Sguardi', 'Metamorfosi');
