@@ -16,6 +16,7 @@ final class Plugin
         add_action('plugins_loaded', [self::class, 'onPluginsLoaded']);
         add_action('init', [self::class, 'registerPostTypes']);
         add_action('init', [self::class, 'registerTaxonomies']);
+        add_action('init', [self::class, 'maybeEnsureRovescioDirittoForum'], 30);
         add_action('init', [self::class, 'registerRoles'], 5);
         add_action('init', [self::class, 'ensureRivistaCategoryTerms'], 25);
         add_action('wp_ajax_transiti_track_post_view', [self::class, 'trackPostViewAjax']);
@@ -34,6 +35,8 @@ final class Plugin
         add_action('wp_ajax_nopriv_transiti_track_podcast_session_view', [self::class, 'trackPodcastEpisodeSessionView']);
         add_action('wp_ajax_nopriv_transiti_custom_login', [self::class, 'handleCustomLoginAjax']);
         add_action('wp_ajax_nopriv_transiti_custom_lost_password', [self::class, 'handleCustomLostPasswordAjax']);
+        add_filter('wp_insert_post_data', [self::class, 'validateRubricaCombinedLengthOnSave'], 10, 2);
+        add_action('admin_notices', [self::class, 'printRubricaValidationAdminNotice']);
         add_filter('wp_nav_menu_objects', [self::class, 'injectPodcastMenuItemAtRender'], 20, 2);
         add_filter('theme_page_templates', [self::class, 'registerProfilePageTemplate']);
         add_filter('template_include', [self::class, 'resolveProfilePageTemplate'], 99);
@@ -49,11 +52,13 @@ final class Plugin
 
         add_action('save_post_post', [self::class, 'enforceSingleSezioneTerm']);
         add_action('save_post_post', [self::class, 'ensureAsgarosTopicForPublishedPostOnSave'], 40, 3);
+        add_action('save_post_rubrica', [self::class, 'ensureAsgarosTopicForPublishedRubricaOnSave'], 40, 3);
         add_action('add_meta_boxes_rivista', [self::class, 'registerRivistaAssociatedPostsMetabox']);
         add_action('save_post_rivista', [self::class, 'saveRivistaAssociatedPostsMetabox']);
         add_action('save_post_rivista', [self::class, 'syncRivistaForumInAsgaros'], 30, 3);
         add_action('transition_post_status', [self::class, 'initializeViewsCountOnFirstPublish'], 20, 3);
         add_action('transition_post_status', [self::class, 'createAsgarosTopicForPostOnPublish'], 30, 3);
+        add_action('transition_post_status', [self::class, 'createAsgarosTopicForRubricaOnPublish'], 30, 3);
         add_action('transition_post_status', [self::class, 'notifyRedattoriOnAuthorReview'], 20, 3);
     }
 
@@ -68,7 +73,9 @@ final class Plugin
         self::ensureAboutPage();
         self::ensureSezioniTerms();
         self::ensureRivistaCategoryTerms();
+        self::maybeEnsureRovescioDirittoForum();
         self::ensureSezioniTermsInMainMenu();
+        self::ensureRovescioDirittoArchiveInMainMenuAfterSguardi();
         self::ensureForumPageInMainMenuAfterSezioni();
         self::ensurePodcastArchiveInMainMenuAfterForum();
         self::ensureRivistaArchiveInMainMenuAfterPodcast();
@@ -140,6 +147,39 @@ final class Plugin
         );
 
         register_post_type(
+            'rubrica',
+            array(
+                'labels' => array(
+                    'name'               => __('Il Rovescio e il Diritto', 'transiti'),
+                    'singular_name'      => __('Rubrica', 'transiti'),
+                    'menu_name'          => __('Il Rovescio e il Diritto', 'transiti'),
+                    'name_admin_bar'     => __('Rubrica', 'transiti'),
+                    'add_new'            => __('Aggiungi rubrica', 'transiti'),
+                    'add_new_item'       => __('Aggiungi rubrica', 'transiti'),
+                    'edit_item'          => __('Modifica rubrica', 'transiti'),
+                    'new_item'           => __('Nuova rubrica', 'transiti'),
+                    'view_item'          => __('Vedi rubrica', 'transiti'),
+                    'view_items'         => __('Vedi Il Rovescio e il Diritto', 'transiti'),
+                    'search_items'       => __('Cerca in Il Rovescio e il Diritto', 'transiti'),
+                    'all_items'          => __('Tutti gli articoli de Il Rovescio e il Diritto', 'transiti'),
+                    'archives'           => __('Il Rovescio e il Diritto', 'transiti'),
+                    'not_found'          => __('Nessuna rubrica trovata', 'transiti'),
+                    'not_found_in_trash' => __('Nessuna rubrica nel cestino', 'transiti'),
+                ),
+                'public'              => true,
+                'show_in_rest'        => true,
+                'menu_position'       => 25,
+                'menu_icon'           => 'dashicons-welcome-write-blog',
+                'supports'            => array('title', 'editor', 'excerpt', 'thumbnail', 'author'),
+                'taxonomies'          => array('category'),
+                'has_archive'         => 'il-rovescio-e-il-diritto',
+                'rewrite'             => array('slug' => 'il-rovescio-e-il-diritto'),
+                'exclude_from_search' => false,
+                'publicly_queryable'  => true,
+            )
+        );
+
+        register_post_type(
             'podcast',
             array(
                 'labels' => array(
@@ -192,6 +232,7 @@ final class Plugin
     public static function registerTaxonomies(): void
     {
         register_taxonomy_for_object_type('category', 'rivista');
+        register_taxonomy_for_object_type('category', 'rubrica');
 
         register_taxonomy(
             'sezioni',
@@ -1134,6 +1175,15 @@ final class Plugin
         self::maybeCreateAsgarosTopicForPost($post);
     }
 
+    public static function createAsgarosTopicForRubricaOnPublish(string $newStatus, string $oldStatus, \WP_Post $post): void
+    {
+        if ($newStatus !== 'publish' || $oldStatus === 'publish') {
+            return;
+        }
+
+        self::maybeCreateAsgarosTopicForRubrica($post);
+    }
+
     public static function ensureAsgarosTopicForPublishedPostOnSave(int $postId, \WP_Post $post, bool $update): void
     {
         if (wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
@@ -1145,6 +1195,19 @@ final class Plugin
         }
 
         self::maybeCreateAsgarosTopicForPost($post);
+    }
+
+    public static function ensureAsgarosTopicForPublishedRubricaOnSave(int $postId, \WP_Post $post, bool $update): void
+    {
+        if (wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
+            return;
+        }
+
+        if ($post->post_type !== 'rubrica' || $post->post_status !== 'publish') {
+            return;
+        }
+
+        self::maybeCreateAsgarosTopicForRubrica($post);
     }
 
     private static function maybeCreateAsgarosTopicForPost(\WP_Post $post): void
@@ -1272,6 +1335,111 @@ final class Plugin
         }
     }
 
+    private static function maybeCreateAsgarosTopicForRubrica(\WP_Post $post): void
+    {
+        if ($post->post_type !== 'rubrica' || $post->post_status !== 'publish') {
+            return;
+        }
+
+        $postId = (int) $post->ID;
+        if ($postId <= 0 || wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
+            return;
+        }
+
+        if (! class_exists('AsgarosForum')) {
+            return;
+        }
+
+        global $asgarosforum;
+        if (! $asgarosforum instanceof \AsgarosForum) {
+            return;
+        }
+
+        $forumId = self::getOrCreateRovescioDirittoForumId($asgarosforum);
+        if ($forumId <= 0) {
+            return;
+        }
+
+        $topicTitle = wp_html_excerpt(trim((string) get_the_title($postId)), 255, '');
+        if ($topicTitle === '') {
+            $topicTitle = 'Rubrica ' . (string) $postId;
+        }
+
+        $topicBody = self::buildPublishedPostTopicBody($postId, $post);
+        if ($topicBody === '') {
+            $topicBody = $topicTitle;
+        }
+
+        $authorId = (int) $post->post_author;
+        if ($authorId <= 0) {
+            $authorId = (int) get_current_user_id();
+        }
+
+        $db = $asgarosforum->db;
+        $topicsTable = (string) $asgarosforum->tables->topics;
+        $postsTable = (string) $asgarosforum->tables->posts;
+
+        $existingTopicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
+        if ($existingTopicId > 0) {
+            $confirmedTopicId = (int) $db->get_var(
+                $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d LIMIT 1", $existingTopicId)
+            );
+
+            if ($confirmedTopicId > 0) {
+                $db->update(
+                    $topicsTable,
+                    array(
+                        'name'      => $topicTitle,
+                        'parent_id' => $forumId,
+                    ),
+                    array(
+                        'id' => $confirmedTopicId,
+                    ),
+                    array('%s', '%d'),
+                    array('%d')
+                );
+
+                $firstPostId = (int) $db->get_var(
+                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $confirmedTopicId)
+                );
+
+                if ($firstPostId > 0) {
+                    $db->update(
+                        $postsTable,
+                        array(
+                            'text'     => $topicBody,
+                            'forum_id' => $forumId,
+                        ),
+                        array(
+                            'id' => $firstPostId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
+                    );
+                    update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
+                    return;
+                }
+
+                $newPostId = (int) $asgarosforum->content->insert_post($confirmedTopicId, $forumId, $topicBody, $authorId, array());
+                if ($newPostId > 0) {
+                    update_post_meta($postId, '_transiti_asgaros_topic_post_id', $newPostId);
+                    return;
+                }
+            }
+        }
+
+        $inserted = $asgarosforum->content->insert_topic($forumId, $topicTitle, $topicBody, $authorId, array());
+        $topicId = (int) ($inserted->topic_id ?? 0);
+        $topicPostId = (int) ($inserted->post_id ?? 0);
+
+        if ($topicId > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_id', $topicId);
+        }
+        if ($topicPostId > 0) {
+            update_post_meta($postId, '_transiti_asgaros_topic_post_id', $topicPostId);
+        }
+    }
+
     private static function buildPublishedPostTopicBody(int $postId, \WP_Post $post): string
     {
         $parts = array();
@@ -1301,6 +1469,93 @@ final class Plugin
     private static function logRivistaForumSync(string $step, array $context = array()): void
     {
         return;
+    }
+
+    public static function maybeEnsureRovescioDirittoForum(): void
+    {
+        if (! class_exists('AsgarosForum')) {
+            return;
+        }
+
+        global $asgarosforum;
+        if (! $asgarosforum instanceof \AsgarosForum) {
+            return;
+        }
+
+        self::getOrCreateRovescioDirittoForumId($asgarosforum);
+    }
+
+    private static function getOrCreateRovescioDirittoForumId(\AsgarosForum $asgarosforum): int
+    {
+        $forumName = 'Il Rovescio e il Diritto';
+        $storedForumId = (int) get_option('transiti_asgaros_rovescio_forum_id', 0);
+        $forumsTable = (string) $asgarosforum->tables->forums;
+        $db = $asgarosforum->db;
+
+        $categoryId = self::getAsgarosTransitiCategoryId();
+        if ($categoryId <= 0) {
+            return 0;
+        }
+
+        if ($storedForumId > 0) {
+            $existingStoredId = (int) $db->get_var(
+                $db->prepare("SELECT id FROM {$forumsTable} WHERE id = %d LIMIT 1", $storedForumId)
+            );
+            if ($existingStoredId > 0) {
+                $db->update(
+                    $forumsTable,
+                    array(
+                        'name'         => $forumName,
+                        'parent_id'    => $categoryId,
+                        'parent_forum' => 0,
+                        'forum_status' => 'normal',
+                    ),
+                    array('id' => $existingStoredId),
+                    array('%s', '%d', '%d', '%s'),
+                    array('%d')
+                );
+
+                return $existingStoredId;
+            }
+        }
+
+        $existingByName = (int) $db->get_var(
+            $db->prepare(
+                "SELECT id FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0 AND name = %s LIMIT 1",
+                $categoryId,
+                $forumName
+            )
+        );
+
+        if ($existingByName > 0) {
+            update_option('transiti_asgaros_rovescio_forum_id', $existingByName, false);
+            return $existingByName;
+        }
+
+        $maxSort = (int) $db->get_var(
+            $db->prepare(
+                "SELECT MAX(sort) FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0",
+                $categoryId
+            )
+        );
+        $nextSort = max(1, $maxSort + 1);
+
+        $insertedForumId = (int) $asgarosforum->content->insert_forum(
+            $categoryId,
+            $forumName,
+            '',
+            0,
+            '',
+            $nextSort,
+            'normal'
+        );
+
+        if ($insertedForumId > 0) {
+            update_option('transiti_asgaros_rovescio_forum_id', $insertedForumId, false);
+            return $insertedForumId;
+        }
+
+        return 0;
     }
 
     private static function getAsgarosTransitiCategoryId(): int
@@ -1333,6 +1588,128 @@ final class Plugin
 
         return 0;
     }
+
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $postarr
+     * @return array<string, mixed>
+     */
+    public static function validateRubricaCombinedLengthOnSave(array $data, array $postarr): array
+    {
+        if (($data['post_type'] ?? '') !== 'rubrica') {
+            return $data;
+        }
+
+        if (! is_admin() || wp_doing_ajax()) {
+            return $data;
+        }
+
+        if (defined('REST_REQUEST') && REST_REQUEST) {
+            return $data;
+        }
+
+        $excerptRaw = isset($postarr['post_excerpt']) ? (string) $postarr['post_excerpt'] : (string) ($data['post_excerpt'] ?? '');
+        $contentRaw = isset($postarr['post_content']) ? (string) $postarr['post_content'] : (string) ($data['post_content'] ?? '');
+
+        $excerpt = trim(wp_strip_all_tags(wp_unslash($excerptRaw)));
+        $content = trim(
+            wp_strip_all_tags(
+                strip_shortcodes(
+                    wp_unslash($contentRaw)
+                )
+            )
+        );
+
+        $combinedText = trim($excerpt . ' ' . $content);
+        $combinedLength = function_exists('mb_strlen')
+            ? (int) mb_strlen($combinedText, 'UTF-8')
+            : (int) strlen($combinedText);
+
+        if ($combinedLength <= 1000) {
+            return $data;
+        }
+
+        self::setRubricaValidationNotice(
+            sprintf(
+                /* translators: 1: current length, 2: max length */
+                __('Errore salvataggio Rubrica: riassunto + contenuto superano il limite (%1$d/%2$d caratteri compresi di spazi).', 'transiti'),
+                $combinedLength,
+                1000
+            )
+        );
+
+        $postId = isset($postarr['ID']) ? (int) $postarr['ID'] : 0;
+        if ($postId > 0) {
+            $existingPost = get_post($postId);
+            if ($existingPost instanceof \WP_Post && $existingPost->post_type === 'rubrica') {
+                $data['post_content'] = (string) $existingPost->post_content;
+                $data['post_excerpt'] = (string) $existingPost->post_excerpt;
+                return $data;
+            }
+        }
+
+        $data['post_content'] = '';
+        $data['post_excerpt'] = '';
+
+        return $data;
+    }
+
+    public static function printRubricaValidationAdminNotice(): void
+    {
+        if (! is_admin()) {
+            return;
+        }
+
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (! $screen instanceof \WP_Screen) {
+            return;
+        }
+
+        if (! in_array((string) $screen->base, array('post', 'edit'), true)) {
+            return;
+        }
+
+        if ((string) ($screen->post_type ?? '') !== 'rubrica') {
+            return;
+        }
+
+        $message = self::getRubricaValidationNotice();
+        if ($message === '') {
+            return;
+        }
+
+        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($message) . '</p></div>';
+    }
+
+    private static function setRubricaValidationNotice(string $message): void
+    {
+        $userId = (int) get_current_user_id();
+        if ($userId <= 0) {
+            return;
+        }
+
+        set_transient('transiti_rubrica_validation_notice_' . $userId, $message, 120);
+    }
+
+    private static function getRubricaValidationNotice(): string
+    {
+        $userId = (int) get_current_user_id();
+        if ($userId <= 0) {
+            return '';
+        }
+
+        $key = 'transiti_rubrica_validation_notice_' . $userId;
+        $message = get_transient($key);
+
+        if (! is_string($message) || $message === '') {
+            return '';
+        }
+
+        delete_transient($key);
+
+        return $message;
+    }
+
     public static function addViewsAdminColumn(array $columns): array
     {
         $ordered = array();
@@ -1883,6 +2260,7 @@ final class Plugin
         }
 
         self::ensureForumPageInMainMenuAfterSezioni();
+        self::ensureRovescioDirittoArchiveInMainMenuAfterSguardi();
         self::ensurePodcastArchiveInMainMenuAfterForum();
         self::ensureRivistaArchiveInMainMenuAfterPodcast();
         self::ensureContactPageInMainMenuAfterForum();
@@ -1896,6 +2274,7 @@ final class Plugin
         }
 
         self::ensurePodcastArchiveInMainMenuAfterForum();
+        self::ensureRovescioDirittoArchiveInMainMenuAfterSguardi();
         self::ensureRivistaArchiveInMainMenuAfterPodcast();
         self::ensureContactPageInMainMenuAfterForum();
         self::ensureAboutPageInMainMenuAfterPodcast();
@@ -1908,6 +2287,7 @@ final class Plugin
         }
 
         self::ensurePodcastArchiveInMainMenuAfterForum();
+        self::ensureRovescioDirittoArchiveInMainMenuAfterSguardi();
         self::ensureRivistaArchiveInMainMenuAfterPodcast();
         self::ensureContactPageInMainMenuAfterForum();
         self::ensureAboutPageInMainMenuAfterPodcast();
@@ -1921,6 +2301,7 @@ final class Plugin
 
         self::ensureContactPage();
         self::ensurePodcastArchiveInMainMenuAfterForum();
+        self::ensureRovescioDirittoArchiveInMainMenuAfterSguardi();
         self::ensureRivistaArchiveInMainMenuAfterPodcast();
         self::ensureContactPageInMainMenuAfterForum();
         self::ensureAboutPageInMainMenuAfterPodcast();
@@ -1943,9 +2324,64 @@ final class Plugin
 
         self::ensureAboutPage();
         self::ensurePodcastArchiveInMainMenuAfterForum();
+        self::ensureRovescioDirittoArchiveInMainMenuAfterSguardi();
         self::ensureRivistaArchiveInMainMenuAfterPodcast();
         self::ensureContactPageInMainMenuAfterForum();
         self::ensureAboutPageInMainMenuAfterPodcast();
+    }
+
+    private static function ensureRovescioDirittoArchiveInMainMenuAfterSguardi(): void
+    {
+        $menuId = self::resolveMainMenuId(get_nav_menu_locations());
+        if ($menuId <= 0) {
+            return;
+        }
+
+        if (! post_type_exists('rubrica')) {
+            return;
+        }
+
+        $existingItems = wp_get_nav_menu_items($menuId);
+        $targetPosition = self::getRovescioDirittoTargetPosition($existingItems);
+
+        if (is_array($existingItems)) {
+            foreach ($existingItems as $item) {
+                if (
+                    ($item->type ?? '') === 'post_type_archive'
+                    && ($item->object ?? '') === 'rubrica'
+                ) {
+                    wp_update_nav_menu_item(
+                        $menuId,
+                        (int) $item->ID,
+                        array(
+                            'menu-item-title'     => __('Il Rovescio e il Diritto', 'transiti'),
+                            'menu-item-object'    => 'rubrica',
+                            'menu-item-object-id' => 0,
+                            'menu-item-type'      => 'post_type_archive',
+                            'menu-item-status'    => 'publish',
+                            'menu-item-parent-id' => 0,
+                            'menu-item-position'  => $targetPosition,
+                        )
+                    );
+
+                    return;
+                }
+            }
+        }
+
+        wp_update_nav_menu_item(
+            $menuId,
+            0,
+            array(
+                'menu-item-title'     => __('Il Rovescio e il Diritto', 'transiti'),
+                'menu-item-object'    => 'rubrica',
+                'menu-item-object-id' => 0,
+                'menu-item-type'      => 'post_type_archive',
+                'menu-item-status'    => 'publish',
+                'menu-item-parent-id' => 0,
+                'menu-item-position'  => $targetPosition,
+            )
+        );
     }
 
     private static function ensureAboutPageInMainMenuAfterPodcast(): void
@@ -2556,6 +2992,53 @@ final class Plugin
 
         if ($podcastPosition > 0) {
             return $podcastPosition + 1;
+        }
+
+        return $maxMenuPosition + 1;
+    }
+
+    /**
+     * @param array<int, object>|false $existingItems
+     */
+    private static function getRovescioDirittoTargetPosition($existingItems): int
+    {
+        if (! is_array($existingItems) || empty($existingItems)) {
+            return 1;
+        }
+
+        $maxMenuPosition = 0;
+        $maxSezioniPosition = 0;
+        $sguardiPosition = 0;
+        $sguardiTerm = get_term_by('slug', 'sguardi', 'sezioni');
+        $sguardiTermId = $sguardiTerm instanceof \WP_Term ? (int) $sguardiTerm->term_id : 0;
+
+        foreach ($existingItems as $item) {
+            $position = (int) ($item->menu_order ?? 0);
+            if ($position > $maxMenuPosition) {
+                $maxMenuPosition = $position;
+            }
+
+            if (($item->type ?? '') === 'taxonomy' && ($item->object ?? '') === 'sezioni') {
+                if ($position > $maxSezioniPosition) {
+                    $maxSezioniPosition = $position;
+                }
+
+                $title = trim(wp_strip_all_tags((string) ($item->title ?? '')));
+                if (
+                    ($sguardiTermId > 0 && (int) ($item->object_id ?? 0) === $sguardiTermId)
+                    || strcasecmp($title, 'Sguardi') === 0
+                ) {
+                    $sguardiPosition = $position;
+                }
+            }
+        }
+
+        if ($sguardiPosition > 0) {
+            return $sguardiPosition + 1;
+        }
+
+        if ($maxSezioniPosition > 0) {
+            return $maxSezioniPosition + 1;
         }
 
         return $maxMenuPosition + 1;
