@@ -2205,66 +2205,23 @@ final class Plugin
 
     private static function ensureSezioniTermsInMainMenu(): void
     {
-        $locations = get_nav_menu_locations();
-        $mainLocationKey = null;
-
-        foreach (array('main-menu', 'main_menu') as $candidate) {
-            if (! empty($locations[$candidate])) {
-                $mainLocationKey = $candidate;
-                break;
-            }
-        }
-
-        if ($mainLocationKey === null) {
-            return;
-        }
-
-        $menuId = (int) $locations[$mainLocationKey];
+        $menuId = self::resolveMainMenuId(get_nav_menu_locations());
         if ($menuId <= 0) {
             return;
         }
 
-        $terms = get_terms(
-                array(
-                        'taxonomy'   => 'sezioni',
-                        'hide_empty' => false,
-                )
-        );
+        $existingItems = wp_get_nav_menu_items($menuId);
 
-        if (is_wp_error($terms) || empty($terms)) {
+        if (! is_array($existingItems) || empty($existingItems)) {
             return;
         }
 
-        $existingItems = wp_get_nav_menu_items($menuId);
-        $existingTermIds = array();
-
-        if (is_array($existingItems)) {
-            foreach ($existingItems as $item) {
-                if (($item->type ?? '') === 'taxonomy' && ($item->object ?? '') === 'sezioni') {
-                    $existingTermIds[] = (int) ($item->object_id ?? 0);
-                }
-            }
-        }
-
-        foreach ($terms as $term) {
-            $termId = (int) $term->term_id;
-
-            if (in_array($termId, $existingTermIds, true)) {
+        foreach ($existingItems as $item) {
+            if (($item->type ?? '') !== 'taxonomy' || ($item->object ?? '') !== 'sezioni') {
                 continue;
             }
 
-            wp_update_nav_menu_item(
-                    $menuId,
-                    0,
-                    array(
-                            'menu-item-title'     => $term->name,
-                            'menu-item-object'    => 'sezioni',
-                            'menu-item-object-id' => $termId,
-                            'menu-item-type'      => 'taxonomy',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                    )
-            );
+            wp_delete_post((int) $item->ID, true);
         }
     }
 
