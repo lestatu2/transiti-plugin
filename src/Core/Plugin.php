@@ -10,6 +10,7 @@ final class Plugin
 {
     private const PROFILE_PAGE_TEMPLATE = 'transiti-profile-template.php';
     private const ABOUT_PAGE_TEMPLATE = 'transiti-about-template.php';
+    private const RUBRICA_MAX_COMBINED_LENGTH_DEFAULT = 2500;
 
     public static function boot(): void
     {
@@ -1625,7 +1626,9 @@ final class Plugin
                 ? (int) mb_strlen($combinedText, 'UTF-8')
                 : (int) strlen($combinedText);
 
-        if ($combinedLength <= 2500) {
+        $maxCombinedLength = self::getRubricaMaxCombinedLength();
+
+        if ($combinedLength <= $maxCombinedLength) {
             return $data;
         }
 
@@ -1634,7 +1637,7 @@ final class Plugin
                 /* translators: 1: current length, 2: max length */
                         __('Errore salvataggio Rubrica: riassunto + contenuto superano il limite (%1$d/%2$d caratteri compresi di spazi).', 'transiti'),
                         $combinedLength,
-                        2500
+                        $maxCombinedLength
                 )
         );
 
@@ -1652,6 +1655,18 @@ final class Plugin
         $data['post_excerpt'] = '';
 
         return $data;
+    }
+
+    public static function getRubricaMaxCombinedLength(): int
+    {
+        if (! function_exists('get_field')) {
+            return self::RUBRICA_MAX_COMBINED_LENGTH_DEFAULT;
+        }
+
+        $rawValue = get_field('rubrica_max_combined_length', 'option');
+        $value = is_numeric($rawValue) ? (int) $rawValue : 0;
+
+        return $value > 0 ? $value : self::RUBRICA_MAX_COMBINED_LENGTH_DEFAULT;
     }
 
     public static function printRubricaValidationAdminNotice(): void

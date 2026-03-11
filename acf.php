@@ -307,6 +307,23 @@ function transiti_register_acf_configuration_fields(): void
                 'default_value' => array('post'),
             ),
             array(
+                'key' => 'field_transiti_tab_rubrica',
+                'label' => __('Rubrica', 'transiti'),
+                'name' => '',
+                'type' => 'tab',
+                'placement' => 'top',
+            ),
+            array(
+                'key' => 'field_transiti_rubrica_max_combined_length',
+                'label' => __('Lunghezza massima riassunto + contenuto', 'transiti'),
+                'name' => 'rubrica_max_combined_length',
+                'type' => 'number',
+                'default_value' => 2500,
+                'min' => 1,
+                'step' => 1,
+                'instructions' => __('Numero massimo di caratteri, spazi inclusi, consentiti per riassunto + contenuto della Rubrica.', 'transiti'),
+            ),
+            array(
                 'key' => 'field_transiti_tab_feed',
                 'label' => __('Feed', 'transiti'),
                 'name' => '',
