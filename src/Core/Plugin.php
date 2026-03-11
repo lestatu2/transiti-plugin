@@ -98,133 +98,133 @@ final class Plugin
     public static function registerPostTypes(): void
     {
         register_post_type(
-            'citazioni',
-            array(
-                'labels' => array(
-                    'name'          => __('Citazioni', 'transiti'),
-                    'singular_name' => __('Citazione', 'transiti'),
-                    'add_new_item'  => __('Aggiungi citazione', 'transiti'),
-                    'edit_item'     => __('Modifica citazione', 'transiti'),
-                    'new_item'      => __('Nuova citazione', 'transiti'),
-                    'view_item'     => __('Vedi citazione', 'transiti'),
-                    'search_items'  => __('Cerca citazioni', 'transiti'),
-                ),
-                'public'              => true,
-                'show_in_rest'        => true,
-                'menu_position'       => 21,
-                'menu_icon'           => 'dashicons-format-quote',
-                'supports'            => array('title', 'editor'),
-                'has_archive'         => false,
-                'rewrite'             => array('slug' => 'citazioni'),
-                'exclude_from_search' => true,
-                'publicly_queryable'  => false,
-            )
+                'citazioni',
+                array(
+                        'labels' => array(
+                                'name'          => __('Citazioni', 'transiti'),
+                                'singular_name' => __('Citazione', 'transiti'),
+                                'add_new_item'  => __('Aggiungi citazione', 'transiti'),
+                                'edit_item'     => __('Modifica citazione', 'transiti'),
+                                'new_item'      => __('Nuova citazione', 'transiti'),
+                                'view_item'     => __('Vedi citazione', 'transiti'),
+                                'search_items'  => __('Cerca citazioni', 'transiti'),
+                        ),
+                        'public'              => true,
+                        'show_in_rest'        => true,
+                        'menu_position'       => 21,
+                        'menu_icon'           => 'dashicons-format-quote',
+                        'supports'            => array('title', 'editor'),
+                        'has_archive'         => false,
+                        'rewrite'             => array('slug' => 'citazioni'),
+                        'exclude_from_search' => true,
+                        'publicly_queryable'  => false,
+                )
         );
 
         register_post_type(
-            'rivista',
-            array(
-                'labels' => array(
-                    'name'          => __('Riviste', 'transiti'),
-                    'singular_name' => __('Rivista', 'transiti'),
-                    'add_new_item'  => __('Aggiungi rivista', 'transiti'),
-                    'edit_item'     => __('Modifica rivista', 'transiti'),
-                    'new_item'      => __('Nuova rivista', 'transiti'),
-                    'view_item'     => __('Vedi rivista', 'transiti'),
-                    'search_items'  => __('Cerca riviste', 'transiti'),
-                ),
-                'public'              => true,
-                'show_in_rest'        => true,
-                'menu_position'       => 22,
-                'menu_icon'           => 'dashicons-book-alt',
-                'supports'            => array('title', 'editor', 'excerpt', 'thumbnail', 'author'),
-                'taxonomies'          => array('category'),
-                'has_archive'         => true,
-                'rewrite'             => array('slug' => 'rivista'),
-                'exclude_from_search' => false,
-                'publicly_queryable'  => true,
-            )
+                'rivista',
+                array(
+                        'labels' => array(
+                                'name'          => __('Riviste', 'transiti'),
+                                'singular_name' => __('Rivista', 'transiti'),
+                                'add_new_item'  => __('Aggiungi rivista', 'transiti'),
+                                'edit_item'     => __('Modifica rivista', 'transiti'),
+                                'new_item'      => __('Nuova rivista', 'transiti'),
+                                'view_item'     => __('Vedi rivista', 'transiti'),
+                                'search_items'  => __('Cerca riviste', 'transiti'),
+                        ),
+                        'public'              => true,
+                        'show_in_rest'        => true,
+                        'menu_position'       => 22,
+                        'menu_icon'           => 'dashicons-book-alt',
+                        'supports'            => array('title', 'editor', 'excerpt', 'thumbnail', 'author'),
+                        'taxonomies'          => array('category'),
+                        'has_archive'         => true,
+                        'rewrite'             => array('slug' => 'rivista'),
+                        'exclude_from_search' => false,
+                        'publicly_queryable'  => true,
+                )
         );
 
         register_post_type(
-            'rubrica',
-            array(
-                'labels' => array(
-                    'name'               => __('Il Rovescio e il Diritto', 'transiti'),
-                    'singular_name'      => __('Rubrica', 'transiti'),
-                    'menu_name'          => __('Il Rovescio e il Diritto', 'transiti'),
-                    'name_admin_bar'     => __('Rubrica', 'transiti'),
-                    'add_new'            => __('Aggiungi rubrica', 'transiti'),
-                    'add_new_item'       => __('Aggiungi rubrica', 'transiti'),
-                    'edit_item'          => __('Modifica rubrica', 'transiti'),
-                    'new_item'           => __('Nuova rubrica', 'transiti'),
-                    'view_item'          => __('Vedi rubrica', 'transiti'),
-                    'view_items'         => __('Vedi Il Rovescio e il Diritto', 'transiti'),
-                    'search_items'       => __('Cerca in Il Rovescio e il Diritto', 'transiti'),
-                    'all_items'          => __('Tutti gli articoli de Il Rovescio e il Diritto', 'transiti'),
-                    'archives'           => __('Il Rovescio e il Diritto', 'transiti'),
-                    'not_found'          => __('Nessuna rubrica trovata', 'transiti'),
-                    'not_found_in_trash' => __('Nessuna rubrica nel cestino', 'transiti'),
-                ),
-                'public'              => true,
-                'show_in_rest'        => true,
-                'menu_position'       => 25,
-                'menu_icon'           => 'dashicons-welcome-write-blog',
-                'supports'            => array('title', 'editor', 'excerpt', 'thumbnail', 'author'),
-                'taxonomies'          => array('category'),
-                'has_archive'         => 'il-rovescio-e-il-diritto',
-                'rewrite'             => array('slug' => 'il-rovescio-e-il-diritto'),
-                'exclude_from_search' => false,
-                'publicly_queryable'  => true,
-            )
+                'rubrica',
+                array(
+                        'labels' => array(
+                                'name'               => __('Il Rovescio e il Diritto', 'transiti'),
+                                'singular_name'      => __('Rubrica', 'transiti'),
+                                'menu_name'          => __('Il Rovescio e il Diritto', 'transiti'),
+                                'name_admin_bar'     => __('Rubrica', 'transiti'),
+                                'add_new'            => __('Aggiungi rubrica', 'transiti'),
+                                'add_new_item'       => __('Aggiungi rubrica', 'transiti'),
+                                'edit_item'          => __('Modifica rubrica', 'transiti'),
+                                'new_item'           => __('Nuova rubrica', 'transiti'),
+                                'view_item'          => __('Vedi rubrica', 'transiti'),
+                                'view_items'         => __('Vedi Il Rovescio e il Diritto', 'transiti'),
+                                'search_items'       => __('Cerca in Il Rovescio e il Diritto', 'transiti'),
+                                'all_items'          => __('Tutti gli articoli de Il Rovescio e il Diritto', 'transiti'),
+                                'archives'           => __('Il Rovescio e il Diritto', 'transiti'),
+                                'not_found'          => __('Nessuna rubrica trovata', 'transiti'),
+                                'not_found_in_trash' => __('Nessuna rubrica nel cestino', 'transiti'),
+                        ),
+                        'public'              => true,
+                        'show_in_rest'        => true,
+                        'menu_position'       => 25,
+                        'menu_icon'           => 'dashicons-welcome-write-blog',
+                        'supports'            => array('title', 'editor', 'excerpt', 'thumbnail', 'author'),
+                        'taxonomies'          => array('category'),
+                        'has_archive'         => 'il-rovescio-e-il-diritto',
+                        'rewrite'             => array('slug' => 'il-rovescio-e-il-diritto'),
+                        'exclude_from_search' => false,
+                        'publicly_queryable'  => true,
+                )
         );
 
         register_post_type(
-            'podcast',
-            array(
-                'labels' => array(
-                    'name'          => __('Podcast', 'transiti'),
-                    'singular_name' => __('Podcast', 'transiti'),
-                    'add_new_item'  => __('Aggiungi podcast', 'transiti'),
-                    'edit_item'     => __('Modifica podcast', 'transiti'),
-                    'new_item'      => __('Nuovo podcast', 'transiti'),
-                    'view_item'     => __('Vedi podcast', 'transiti'),
-                    'search_items'  => __('Cerca podcast', 'transiti'),
-                ),
-                'public'              => true,
-                'show_in_rest'        => true,
-                'menu_position'       => 23,
-                'menu_icon'           => 'dashicons-microphone',
-                'supports'            => array('title', 'editor', 'excerpt', 'thumbnail'),
-                'has_archive'         => true,
-                'rewrite'             => array('slug' => 'podcast'),
-                'exclude_from_search' => false,
-                'publicly_queryable'  => true,
-            )
+                'podcast',
+                array(
+                        'labels' => array(
+                                'name'          => __('Podcast', 'transiti'),
+                                'singular_name' => __('Podcast', 'transiti'),
+                                'add_new_item'  => __('Aggiungi podcast', 'transiti'),
+                                'edit_item'     => __('Modifica podcast', 'transiti'),
+                                'new_item'      => __('Nuovo podcast', 'transiti'),
+                                'view_item'     => __('Vedi podcast', 'transiti'),
+                                'search_items'  => __('Cerca podcast', 'transiti'),
+                        ),
+                        'public'              => true,
+                        'show_in_rest'        => true,
+                        'menu_position'       => 23,
+                        'menu_icon'           => 'dashicons-microphone',
+                        'supports'            => array('title', 'editor', 'excerpt', 'thumbnail'),
+                        'has_archive'         => true,
+                        'rewrite'             => array('slug' => 'podcast'),
+                        'exclude_from_search' => false,
+                        'publicly_queryable'  => true,
+                )
         );
 
         register_post_type(
-            'faq',
-            array(
-                'labels' => array(
-                    'name'          => __('FAQ', 'transiti'),
-                    'singular_name' => __('FAQ', 'transiti'),
-                    'add_new_item'  => __('Aggiungi FAQ', 'transiti'),
-                    'edit_item'     => __('Modifica FAQ', 'transiti'),
-                    'new_item'      => __('Nuova FAQ', 'transiti'),
-                    'view_item'     => __('Vedi FAQ', 'transiti'),
-                    'search_items'  => __('Cerca FAQ', 'transiti'),
-                ),
-                'public'              => true,
-                'show_in_rest'        => true,
-                'menu_position'       => 24,
-                'menu_icon'           => 'dashicons-editor-help',
-                'supports'            => array('title', 'editor'),
-                'has_archive'         => true,
-                'rewrite'             => array('slug' => 'faq'),
-                'exclude_from_search' => false,
-                'publicly_queryable'  => true,
-            )
+                'faq',
+                array(
+                        'labels' => array(
+                                'name'          => __('FAQ', 'transiti'),
+                                'singular_name' => __('FAQ', 'transiti'),
+                                'add_new_item'  => __('Aggiungi FAQ', 'transiti'),
+                                'edit_item'     => __('Modifica FAQ', 'transiti'),
+                                'new_item'      => __('Nuova FAQ', 'transiti'),
+                                'view_item'     => __('Vedi FAQ', 'transiti'),
+                                'search_items'  => __('Cerca FAQ', 'transiti'),
+                        ),
+                        'public'              => true,
+                        'show_in_rest'        => true,
+                        'menu_position'       => 24,
+                        'menu_icon'           => 'dashicons-editor-help',
+                        'supports'            => array('title', 'editor'),
+                        'has_archive'         => true,
+                        'rewrite'             => array('slug' => 'faq'),
+                        'exclude_from_search' => false,
+                        'publicly_queryable'  => true,
+                )
         );
 
     }
@@ -235,57 +235,57 @@ final class Plugin
         register_taxonomy_for_object_type('category', 'rubrica');
 
         register_taxonomy(
-            'sezioni',
-            array('post'),
-            array(
-                'labels' => array(
-                    'name'          => __('Sezioni', 'transiti'),
-                    'singular_name' => __('Sezione', 'transiti'),
-                    'search_items'  => __('Cerca sezioni', 'transiti'),
-                    'all_items'     => __('Tutte le sezioni', 'transiti'),
-                    'edit_item'     => __('Modifica sezione', 'transiti'),
-                    'update_item'   => __('Aggiorna sezione', 'transiti'),
-                    'add_new_item'  => __('Aggiungi sezione', 'transiti'),
-                    'new_item_name' => __('Nuova sezione', 'transiti'),
-                    'menu_name'     => __('Sezioni', 'transiti'),
-                ),
-                'public'            => true,
-                'hierarchical'      => true,
-                'show_ui'           => true,
-                'show_admin_column' => true,
-                'show_in_rest'      => true,
-                'rewrite'           => array('slug' => 'sezioni'),
-                'capabilities'      => array(
-                    'manage_terms' => 'manage_options',
-                    'edit_terms'   => 'manage_options',
-                    'delete_terms' => 'manage_options',
-                    'assign_terms' => 'edit_posts',
-                ),
-            )
+                'sezioni',
+                array('post'),
+                array(
+                        'labels' => array(
+                                'name'          => __('Sezioni', 'transiti'),
+                                'singular_name' => __('Sezione', 'transiti'),
+                                'search_items'  => __('Cerca sezioni', 'transiti'),
+                                'all_items'     => __('Tutte le sezioni', 'transiti'),
+                                'edit_item'     => __('Modifica sezione', 'transiti'),
+                                'update_item'   => __('Aggiorna sezione', 'transiti'),
+                                'add_new_item'  => __('Aggiungi sezione', 'transiti'),
+                                'new_item_name' => __('Nuova sezione', 'transiti'),
+                                'menu_name'     => __('Sezioni', 'transiti'),
+                        ),
+                        'public'            => true,
+                        'hierarchical'      => true,
+                        'show_ui'           => true,
+                        'show_admin_column' => true,
+                        'show_in_rest'      => true,
+                        'rewrite'           => array('slug' => 'sezioni'),
+                        'capabilities'      => array(
+                                'manage_terms' => 'manage_options',
+                                'edit_terms'   => 'manage_options',
+                                'delete_terms' => 'manage_options',
+                                'assign_terms' => 'edit_posts',
+                        ),
+                )
         );
 
         register_taxonomy(
-            'faq_category',
-            array('faq'),
-            array(
-                'labels' => array(
-                    'name'          => __('Categorie FAQ', 'transiti'),
-                    'singular_name' => __('Categoria FAQ', 'transiti'),
-                    'search_items'  => __('Cerca categorie FAQ', 'transiti'),
-                    'all_items'     => __('Tutte le categorie FAQ', 'transiti'),
-                    'edit_item'     => __('Modifica categoria FAQ', 'transiti'),
-                    'update_item'   => __('Aggiorna categoria FAQ', 'transiti'),
-                    'add_new_item'  => __('Aggiungi categoria FAQ', 'transiti'),
-                    'new_item_name' => __('Nuova categoria FAQ', 'transiti'),
-                    'menu_name'     => __('Categorie FAQ', 'transiti'),
-                ),
-                'public'            => true,
-                'hierarchical'      => true,
-                'show_ui'           => true,
-                'show_admin_column' => true,
-                'show_in_rest'      => true,
-                'rewrite'           => array('slug' => 'categoria-faq'),
-            )
+                'faq_category',
+                array('faq'),
+                array(
+                        'labels' => array(
+                                'name'          => __('Categorie FAQ', 'transiti'),
+                                'singular_name' => __('Categoria FAQ', 'transiti'),
+                                'search_items'  => __('Cerca categorie FAQ', 'transiti'),
+                                'all_items'     => __('Tutte le categorie FAQ', 'transiti'),
+                                'edit_item'     => __('Modifica categoria FAQ', 'transiti'),
+                                'update_item'   => __('Aggiorna categoria FAQ', 'transiti'),
+                                'add_new_item'  => __('Aggiungi categoria FAQ', 'transiti'),
+                                'new_item_name' => __('Nuova categoria FAQ', 'transiti'),
+                                'menu_name'     => __('Categorie FAQ', 'transiti'),
+                        ),
+                        'public'            => true,
+                        'hierarchical'      => true,
+                        'show_ui'           => true,
+                        'show_admin_column' => true,
+                        'show_in_rest'      => true,
+                        'rewrite'           => array('slug' => 'categoria-faq'),
+                )
         );
     }
 
@@ -394,8 +394,8 @@ final class Plugin
         }
 
         return new \WP_Error(
-            'transiti_sezioni_create_forbidden',
-            __('Solo gli amministratori possono aggiungere nuove sezioni.', 'transiti')
+                'transiti_sezioni_create_forbidden',
+                __('Solo gli amministratori possono aggiungere nuove sezioni.', 'transiti')
         );
     }
 
@@ -403,27 +403,27 @@ final class Plugin
     {
         if ($newStatus !== 'pending' || $oldStatus === 'pending') {
             self::appendReviewNotificationLog(
-                array(
-                    'result'     => 'skipped',
-                    'reason'     => 'status_not_pending_transition',
-                    'post_id'    => (int) $post->ID,
-                    'new_status' => $newStatus,
-                    'old_status' => $oldStatus,
-                )
+                    array(
+                            'result'     => 'skipped',
+                            'reason'     => 'status_not_pending_transition',
+                            'post_id'    => (int) $post->ID,
+                            'new_status' => $newStatus,
+                            'old_status' => $oldStatus,
+                    )
             );
             return;
         }
 
         if ($post->post_type !== 'post') {
             self::appendReviewNotificationLog(
-                array(
-                    'result'     => 'skipped',
-                    'reason'     => 'not_post_type_post',
-                    'post_id'    => (int) $post->ID,
-                    'new_status' => $newStatus,
-                    'old_status' => $oldStatus,
-                    'post_type'  => (string) $post->post_type,
-                )
+                    array(
+                            'result'     => 'skipped',
+                            'reason'     => 'not_post_type_post',
+                            'post_id'    => (int) $post->ID,
+                            'new_status' => $newStatus,
+                            'old_status' => $oldStatus,
+                            'post_type'  => (string) $post->post_type,
+                    )
             );
             return;
         }
@@ -431,11 +431,11 @@ final class Plugin
         $postId = (int) $post->ID;
         if ($postId <= 0 || wp_is_post_autosave($postId) || wp_is_post_revision($postId)) {
             self::appendReviewNotificationLog(
-                array(
-                    'result'  => 'skipped',
-                    'reason'  => 'invalid_post_or_autosave_revision',
-                    'post_id' => $postId,
-                )
+                    array(
+                            'result'  => 'skipped',
+                            'reason'  => 'invalid_post_or_autosave_revision',
+                            'post_id' => $postId,
+                    )
             );
             return;
         }
@@ -443,13 +443,13 @@ final class Plugin
         $author = get_userdata((int) $post->post_author);
         if (! $author instanceof \WP_User || ! in_array('author', (array) $author->roles, true)) {
             self::appendReviewNotificationLog(
-                array(
-                    'result'       => 'skipped',
-                    'reason'       => 'post_author_not_author_role',
-                    'post_id'      => $postId,
-                    'author_id'    => (int) $post->post_author,
-                    'author_roles' => $author instanceof \WP_User ? (array) $author->roles : array(),
-                )
+                    array(
+                            'result'       => 'skipped',
+                            'reason'       => 'post_author_not_author_role',
+                            'post_id'      => $postId,
+                            'author_id'    => (int) $post->post_author,
+                            'author_roles' => $author instanceof \WP_User ? (array) $author->roles : array(),
+                    )
             );
             return;
         }
@@ -457,12 +457,12 @@ final class Plugin
         $recipientIds = self::getConfiguredRedattoriRecipientIds();
         if (empty($recipientIds)) {
             self::appendReviewNotificationLog(
-                array(
-                    'result'    => 'skipped',
-                    'reason'    => 'no_configured_recipient_ids',
-                    'post_id'   => $postId,
-                    'author_id' => (int) $author->ID,
-                )
+                    array(
+                            'result'    => 'skipped',
+                            'reason'    => 'no_configured_recipient_ids',
+                            'post_id'   => $postId,
+                            'author_id' => (int) $author->ID,
+                    )
             );
             return;
         }
@@ -487,13 +487,13 @@ final class Plugin
         $recipientEmails = array_values(array_unique($recipientEmails));
         if (empty($recipientEmails)) {
             self::appendReviewNotificationLog(
-                array(
-                    'result'         => 'skipped',
-                    'reason'         => 'no_valid_recipient_emails',
-                    'post_id'        => $postId,
-                    'author_id'      => (int) $author->ID,
-                    'recipient_ids'  => $recipientIds,
-                )
+                    array(
+                            'result'         => 'skipped',
+                            'reason'         => 'no_valid_recipient_emails',
+                            'post_id'        => $postId,
+                            'author_id'      => (int) $author->ID,
+                            'recipient_ids'  => $recipientIds,
+                    )
             );
             return;
         }
@@ -504,26 +504,26 @@ final class Plugin
         $authorName = trim((string) $author->display_name);
 
         $message = implode(
-            "\n\n",
-            array(
-                __('Un autore ha inviato un articolo in revisione.', 'transiti'),
-                sprintf(__('Titolo: %s', 'transiti'), $postTitle !== '' ? $postTitle : ('#' . $postId)),
-                sprintf(__('Autore: %s', 'transiti'), $authorName !== '' ? $authorName : ('#' . (int) $author->ID)),
-                sprintf(__('Modifica articolo: %s', 'transiti'), $editLink),
-            )
+                "\n\n",
+                array(
+                        __('Un autore ha inviato un articolo in revisione.', 'transiti'),
+                        sprintf(__('Titolo: %s', 'transiti'), $postTitle !== '' ? $postTitle : ('#' . $postId)),
+                        sprintf(__('Autore: %s', 'transiti'), $authorName !== '' ? $authorName : ('#' . (int) $author->ID)),
+                        sprintf(__('Modifica articolo: %s', 'transiti'), $editLink),
+                )
         );
 
         $mailSent = wp_mail($recipientEmails, $subject, $message);
         self::appendReviewNotificationLog(
-            array(
-                'result'            => $mailSent ? 'sent' : 'failed',
-                'post_id'           => $postId,
-                'post_title'        => $postTitle,
-                'author_id'         => (int) $author->ID,
-                'author_name'       => $authorName,
-                'recipient_ids'     => $recipientIds,
-                'recipient_emails'  => $recipientEmails,
-            )
+                array(
+                        'result'            => $mailSent ? 'sent' : 'failed',
+                        'post_id'           => $postId,
+                        'post_title'        => $postTitle,
+                        'author_id'         => (int) $author->ID,
+                        'author_name'       => $authorName,
+                        'recipient_ids'     => $recipientIds,
+                        'recipient_emails'  => $recipientEmails,
+                )
         );
     }
 
@@ -677,12 +677,12 @@ final class Plugin
     public static function registerRivistaAssociatedPostsMetabox(): void
     {
         add_meta_box(
-            'transiti-rivista-associated-posts',
-            __('Articoli associati', 'transiti'),
-            [self::class, 'renderRivistaAssociatedPostsMetabox'],
-            'rivista',
-            'normal',
-            'default'
+                'transiti-rivista-associated-posts',
+                __('Articoli associati', 'transiti'),
+                [self::class, 'renderRivistaAssociatedPostsMetabox'],
+                'rivista',
+                'normal',
+                'default'
         );
     }
 
@@ -690,31 +690,31 @@ final class Plugin
     {
         $rivistaId = (int) $post->ID;
         $associatedPosts = get_posts(
-            array(
-                'post_type'              => 'post',
-                'post_status'            => 'publish',
-                'posts_per_page'         => -1,
-                'orderby'                => 'date',
-                'order'                  => 'DESC',
-                'no_found_rows'          => true,
-                'update_post_meta_cache' => false,
-                'update_post_term_cache' => false,
-                'meta_query'             => array(
-                    array(
-                        'key'     => 'post_rivista_assoc',
-                        'value'   => $rivistaId,
-                        'compare' => '=',
-                    ),
-                ),
-            )
+                array(
+                        'post_type'              => 'post',
+                        'post_status'            => 'publish',
+                        'posts_per_page'         => -1,
+                        'orderby'                => 'date',
+                        'order'                  => 'DESC',
+                        'no_found_rows'          => true,
+                        'update_post_meta_cache' => false,
+                        'update_post_term_cache' => false,
+                        'meta_query'             => array(
+                                array(
+                                        'key'     => 'post_rivista_assoc',
+                                        'value'   => $rivistaId,
+                                        'compare' => '=',
+                                ),
+                        ),
+                )
         );
 
         $associatedIds = array_map(
-            static fn($item): int => (int) $item->ID,
-            array_filter(
-                $associatedPosts,
-                static fn($item): bool => $item instanceof \WP_Post
-            )
+                static fn($item): int => (int) $item->ID,
+                array_filter(
+                        $associatedPosts,
+                        static fn($item): bool => $item instanceof \WP_Post
+                )
         );
 
         $savedOrder = get_post_meta($rivistaId, '_transiti_rivista_related_posts_order', true);
@@ -837,22 +837,22 @@ final class Plugin
         }
 
         $validAssociatedIds = get_posts(
-            array(
-                'post_type'              => 'post',
-                'post_status'            => 'publish',
-                'posts_per_page'         => -1,
-                'fields'                 => 'ids',
-                'no_found_rows'          => true,
-                'update_post_meta_cache' => false,
-                'update_post_term_cache' => false,
-                'meta_query'             => array(
-                    array(
-                        'key'     => 'post_rivista_assoc',
-                        'value'   => (int) $postId,
-                        'compare' => '=',
-                    ),
-                ),
-            )
+                array(
+                        'post_type'              => 'post',
+                        'post_status'            => 'publish',
+                        'posts_per_page'         => -1,
+                        'fields'                 => 'ids',
+                        'no_found_rows'          => true,
+                        'update_post_meta_cache' => false,
+                        'update_post_term_cache' => false,
+                        'meta_query'             => array(
+                                array(
+                                        'key'     => 'post_rivista_assoc',
+                                        'value'   => (int) $postId,
+                                        'compare' => '=',
+                                ),
+                        ),
+                )
         );
 
         $validAssociatedIds = array_map('intval', is_array($validAssociatedIds) ? $validAssociatedIds : array());
@@ -906,11 +906,11 @@ final class Plugin
             $forumName = wp_html_excerpt($forumName, 255, '');
 
             $forumDescription = sanitize_text_field(
-                trim(
-                    wp_strip_all_tags(
-                        strip_shortcodes((string) $post->post_content)
+                    trim(
+                            wp_strip_all_tags(
+                                    strip_shortcodes((string) $post->post_content)
+                            )
                     )
-                )
             );
             $forumDescription = wp_html_excerpt($forumDescription, 255, '');
 
@@ -920,24 +920,24 @@ final class Plugin
 
             if ($forumId > 0) {
                 $existingForumId = (int) $db->get_var(
-                    $db->prepare("SELECT id FROM {$forumsTable} WHERE id = %d LIMIT 1", $forumId)
+                        $db->prepare("SELECT id FROM {$forumsTable} WHERE id = %d LIMIT 1", $forumId)
                 );
 
                 if ($existingForumId > 0) {
                     $updated = $db->update(
-                        $forumsTable,
-                        array(
-                            'name'         => $forumName,
-                            'description'  => $forumDescription,
-                            'parent_id'    => $categoryId,
-                            'parent_forum' => 0,
-                            'forum_status' => 'normal',
-                        ),
-                        array(
-                            'id' => $existingForumId,
-                        ),
-                        array('%s', '%s', '%d', '%d', '%s'),
-                        array('%d')
+                            $forumsTable,
+                            array(
+                                    'name'         => $forumName,
+                                    'description'  => $forumDescription,
+                                    'parent_id'    => $categoryId,
+                                    'parent_forum' => 0,
+                                    'forum_status' => 'normal',
+                            ),
+                            array(
+                                    'id' => $existingForumId,
+                            ),
+                            array('%s', '%s', '%d', '%d', '%s'),
+                            array('%d')
                     );
                     self::logRivistaForumSync('UPDATED_EXISTING_BY_META', array('post_id' => $postId, 'forum_id' => $existingForumId, 'db_result' => (string) $updated));
                     self::syncRivistaEditorialeTopicInForum($postId, $post, $existingForumId, $asgarosforum);
@@ -946,25 +946,25 @@ final class Plugin
             }
 
             $existingByName = (int) $db->get_var(
-                $db->prepare(
-                    "SELECT id FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0 AND name = %s LIMIT 1",
-                    $categoryId,
-                    $forumName
-                )
+                    $db->prepare(
+                            "SELECT id FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0 AND name = %s LIMIT 1",
+                            $categoryId,
+                            $forumName
+                    )
             );
 
             if ($existingByName > 0) {
                 update_post_meta($postId, '_transiti_asgaros_forum_id', $existingByName);
                 $updated = $db->update(
-                    $forumsTable,
-                    array(
-                        'description' => $forumDescription,
-                    ),
-                    array(
-                        'id' => $existingByName,
-                    ),
-                    array('%s'),
-                    array('%d')
+                        $forumsTable,
+                        array(
+                                'description' => $forumDescription,
+                        ),
+                        array(
+                                'id' => $existingByName,
+                        ),
+                        array('%s'),
+                        array('%d')
                 );
                 self::logRivistaForumSync('LINKED_EXISTING_BY_NAME', array('post_id' => $postId, 'forum_id' => $existingByName, 'db_result' => (string) $updated));
                 self::syncRivistaEditorialeTopicInForum($postId, $post, $existingByName, $asgarosforum);
@@ -972,21 +972,21 @@ final class Plugin
             }
 
             $maxSort = (int) $db->get_var(
-                $db->prepare(
-                    "SELECT MAX(sort) FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0",
-                    $categoryId
-                )
+                    $db->prepare(
+                            "SELECT MAX(sort) FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0",
+                            $categoryId
+                    )
             );
             $nextSort = max(1, $maxSort + 1);
 
             $insertedForumId = (int) $asgarosforum->content->insert_forum(
-                $categoryId,
-                $forumName,
-                $forumDescription,
-                0,
-                '',
-                $nextSort,
-                'normal'
+                    $categoryId,
+                    $forumName,
+                    $forumDescription,
+                    0,
+                    '',
+                    $nextSort,
+                    'normal'
             );
 
             if ($insertedForumId > 0) {
@@ -1021,39 +1021,39 @@ final class Plugin
         $topicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
         if ($topicId > 0) {
             $existingTopicId = (int) $db->get_var(
-                $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d AND parent_id = %d LIMIT 1", $topicId, $forumId)
+                    $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d AND parent_id = %d LIMIT 1", $topicId, $forumId)
             );
 
             if ($existingTopicId > 0) {
                 $db->update(
-                    $topicsTable,
-                    array(
-                        'name'   => $topicTitle,
-                        'sticky' => 1,
-                    ),
-                    array(
-                        'id' => $existingTopicId,
-                    ),
-                    array('%s', '%d'),
-                    array('%d')
+                        $topicsTable,
+                        array(
+                                'name'   => $topicTitle,
+                                'sticky' => 1,
+                        ),
+                        array(
+                                'id' => $existingTopicId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
                 );
 
                 $firstPostId = (int) $db->get_var(
-                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $existingTopicId)
+                        $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $existingTopicId)
                 );
 
                 if ($firstPostId > 0) {
                     $db->update(
-                        $postsTable,
-                        array(
-                            'text'    => $topicBody,
-                            'forum_id'=> $forumId,
-                        ),
-                        array(
-                            'id' => $firstPostId,
-                        ),
-                        array('%s', '%d'),
-                        array('%d')
+                            $postsTable,
+                            array(
+                                    'text'    => $topicBody,
+                                    'forum_id'=> $forumId,
+                            ),
+                            array(
+                                    'id' => $firstPostId,
+                            ),
+                            array('%s', '%d'),
+                            array('%d')
                     );
                     update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
                     self::logRivistaForumSync('UPDATED_EDITORIALE_TOPIC', array('post_id' => $postId, 'forum_id' => $forumId, 'topic_id' => $existingTopicId, 'post_id_topic' => $firstPostId));
@@ -1070,40 +1070,40 @@ final class Plugin
         }
 
         $existingByTitle = (int) $db->get_var(
-            $db->prepare("SELECT id FROM {$topicsTable} WHERE parent_id = %d AND name = %s ORDER BY id ASC LIMIT 1", $forumId, $topicTitle)
+                $db->prepare("SELECT id FROM {$topicsTable} WHERE parent_id = %d AND name = %s ORDER BY id ASC LIMIT 1", $forumId, $topicTitle)
         );
 
         if ($existingByTitle > 0) {
             update_post_meta($postId, '_transiti_asgaros_topic_id', $existingByTitle);
             $db->update(
-                $topicsTable,
-                array(
-                    'name'   => $topicTitle,
-                    'sticky' => 1,
-                ),
-                array(
-                    'id' => $existingByTitle,
-                ),
-                array('%s', '%d'),
-                array('%d')
+                    $topicsTable,
+                    array(
+                            'name'   => $topicTitle,
+                            'sticky' => 1,
+                    ),
+                    array(
+                            'id' => $existingByTitle,
+                    ),
+                    array('%s', '%d'),
+                    array('%d')
             );
 
             $firstPostId = (int) $db->get_var(
-                $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $existingByTitle)
+                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $existingByTitle)
             );
 
             if ($firstPostId > 0) {
                 $db->update(
-                    $postsTable,
-                    array(
-                        'text'    => $topicBody,
-                        'forum_id'=> $forumId,
-                    ),
-                    array(
-                        'id' => $firstPostId,
-                    ),
-                    array('%s', '%d'),
-                    array('%d')
+                        $postsTable,
+                        array(
+                                'text'    => $topicBody,
+                                'forum_id'=> $forumId,
+                        ),
+                        array(
+                                'id' => $firstPostId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
                 );
                 update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
                 self::logRivistaForumSync('LINKED_EXISTING_EDITORIALE_TOPIC', array('post_id' => $postId, 'forum_id' => $forumId, 'topic_id' => $existingByTitle, 'post_id_topic' => $firstPostId));
@@ -1118,15 +1118,15 @@ final class Plugin
         if ($newTopicId > 0) {
             update_post_meta($postId, '_transiti_asgaros_topic_id', $newTopicId);
             $db->update(
-                $topicsTable,
-                array(
-                    'sticky' => 1,
-                ),
-                array(
-                    'id' => $newTopicId,
-                ),
-                array('%d'),
-                array('%d')
+                    $topicsTable,
+                    array(
+                            'sticky' => 1,
+                    ),
+                    array(
+                            'id' => $newTopicId,
+                    ),
+                    array('%d'),
+                    array('%d')
             );
         }
         if ($newPostId > 0) {
@@ -1277,39 +1277,39 @@ final class Plugin
         $existingTopicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
         if ($existingTopicId > 0) {
             $confirmedTopicId = (int) $db->get_var(
-                $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d LIMIT 1", $existingTopicId)
+                    $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d LIMIT 1", $existingTopicId)
             );
 
             if ($confirmedTopicId > 0) {
                 $db->update(
-                    $topicsTable,
-                    array(
-                        'name'      => $topicTitle,
-                        'parent_id' => $forumId,
-                    ),
-                    array(
-                        'id' => $confirmedTopicId,
-                    ),
-                    array('%s', '%d'),
-                    array('%d')
+                        $topicsTable,
+                        array(
+                                'name'      => $topicTitle,
+                                'parent_id' => $forumId,
+                        ),
+                        array(
+                                'id' => $confirmedTopicId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
                 );
 
                 $firstPostId = (int) $db->get_var(
-                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $confirmedTopicId)
+                        $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $confirmedTopicId)
                 );
 
                 if ($firstPostId > 0) {
                     $db->update(
-                        $postsTable,
-                        array(
-                            'text'     => $topicBody,
-                            'forum_id' => $forumId,
-                        ),
-                        array(
-                            'id' => $firstPostId,
-                        ),
-                        array('%s', '%d'),
-                        array('%d')
+                            $postsTable,
+                            array(
+                                    'text'     => $topicBody,
+                                    'forum_id' => $forumId,
+                            ),
+                            array(
+                                    'id' => $firstPostId,
+                            ),
+                            array('%s', '%d'),
+                            array('%d')
                     );
                     update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
                     return;
@@ -1382,39 +1382,39 @@ final class Plugin
         $existingTopicId = (int) get_post_meta($postId, '_transiti_asgaros_topic_id', true);
         if ($existingTopicId > 0) {
             $confirmedTopicId = (int) $db->get_var(
-                $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d LIMIT 1", $existingTopicId)
+                    $db->prepare("SELECT id FROM {$topicsTable} WHERE id = %d LIMIT 1", $existingTopicId)
             );
 
             if ($confirmedTopicId > 0) {
                 $db->update(
-                    $topicsTable,
-                    array(
-                        'name'      => $topicTitle,
-                        'parent_id' => $forumId,
-                    ),
-                    array(
-                        'id' => $confirmedTopicId,
-                    ),
-                    array('%s', '%d'),
-                    array('%d')
+                        $topicsTable,
+                        array(
+                                'name'      => $topicTitle,
+                                'parent_id' => $forumId,
+                        ),
+                        array(
+                                'id' => $confirmedTopicId,
+                        ),
+                        array('%s', '%d'),
+                        array('%d')
                 );
 
                 $firstPostId = (int) $db->get_var(
-                    $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $confirmedTopicId)
+                        $db->prepare("SELECT id FROM {$postsTable} WHERE parent_id = %d ORDER BY id ASC LIMIT 1", $confirmedTopicId)
                 );
 
                 if ($firstPostId > 0) {
                     $db->update(
-                        $postsTable,
-                        array(
-                            'text'     => $topicBody,
-                            'forum_id' => $forumId,
-                        ),
-                        array(
-                            'id' => $firstPostId,
-                        ),
-                        array('%s', '%d'),
-                        array('%d')
+                            $postsTable,
+                            array(
+                                    'text'     => $topicBody,
+                                    'forum_id' => $forumId,
+                            ),
+                            array(
+                                    'id' => $firstPostId,
+                            ),
+                            array('%s', '%d'),
+                            array('%d')
                     );
                     update_post_meta($postId, '_transiti_asgaros_topic_post_id', $firstPostId);
                     return;
@@ -1499,20 +1499,20 @@ final class Plugin
 
         if ($storedForumId > 0) {
             $existingStoredId = (int) $db->get_var(
-                $db->prepare("SELECT id FROM {$forumsTable} WHERE id = %d LIMIT 1", $storedForumId)
+                    $db->prepare("SELECT id FROM {$forumsTable} WHERE id = %d LIMIT 1", $storedForumId)
             );
             if ($existingStoredId > 0) {
                 $db->update(
-                    $forumsTable,
-                    array(
-                        'name'         => $forumName,
-                        'parent_id'    => $categoryId,
-                        'parent_forum' => 0,
-                        'forum_status' => 'normal',
-                    ),
-                    array('id' => $existingStoredId),
-                    array('%s', '%d', '%d', '%s'),
-                    array('%d')
+                        $forumsTable,
+                        array(
+                                'name'         => $forumName,
+                                'parent_id'    => $categoryId,
+                                'parent_forum' => 0,
+                                'forum_status' => 'normal',
+                        ),
+                        array('id' => $existingStoredId),
+                        array('%s', '%d', '%d', '%s'),
+                        array('%d')
                 );
 
                 return $existingStoredId;
@@ -1520,11 +1520,11 @@ final class Plugin
         }
 
         $existingByName = (int) $db->get_var(
-            $db->prepare(
-                "SELECT id FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0 AND name = %s LIMIT 1",
-                $categoryId,
-                $forumName
-            )
+                $db->prepare(
+                        "SELECT id FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0 AND name = %s LIMIT 1",
+                        $categoryId,
+                        $forumName
+                )
         );
 
         if ($existingByName > 0) {
@@ -1533,21 +1533,21 @@ final class Plugin
         }
 
         $maxSort = (int) $db->get_var(
-            $db->prepare(
-                "SELECT MAX(sort) FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0",
-                $categoryId
-            )
+                $db->prepare(
+                        "SELECT MAX(sort) FROM {$forumsTable} WHERE parent_id = %d AND parent_forum = 0",
+                        $categoryId
+                )
         );
         $nextSort = max(1, $maxSort + 1);
 
         $insertedForumId = (int) $asgarosforum->content->insert_forum(
-            $categoryId,
-            $forumName,
-            '',
-            0,
-            '',
-            $nextSort,
-            'normal'
+                $categoryId,
+                $forumName,
+                '',
+                0,
+                '',
+                $nextSort,
+                'normal'
         );
 
         if ($insertedForumId > 0) {
@@ -1566,10 +1566,10 @@ final class Plugin
         }
 
         $terms = get_terms(
-            array(
-                'taxonomy'   => 'asgarosforum-category',
-                'hide_empty' => false,
-            )
+                array(
+                        'taxonomy'   => 'asgarosforum-category',
+                        'hide_empty' => false,
+                )
         );
 
         if (! is_array($terms) || empty($terms)) {
@@ -1613,29 +1613,29 @@ final class Plugin
 
         $excerpt = trim(wp_strip_all_tags(wp_unslash($excerptRaw)));
         $content = trim(
-            wp_strip_all_tags(
-                strip_shortcodes(
-                    wp_unslash($contentRaw)
+                wp_strip_all_tags(
+                        strip_shortcodes(
+                                wp_unslash($contentRaw)
+                        )
                 )
-            )
         );
 
         $combinedText = trim($excerpt . ' ' . $content);
         $combinedLength = function_exists('mb_strlen')
-            ? (int) mb_strlen($combinedText, 'UTF-8')
-            : (int) strlen($combinedText);
+                ? (int) mb_strlen($combinedText, 'UTF-8')
+                : (int) strlen($combinedText);
 
-        if ($combinedLength <= 1000) {
+        if ($combinedLength <= 2500) {
             return $data;
         }
 
         self::setRubricaValidationNotice(
-            sprintf(
+                sprintf(
                 /* translators: 1: current length, 2: max length */
-                __('Errore salvataggio Rubrica: riassunto + contenuto superano il limite (%1$d/%2$d caratteri compresi di spazi).', 'transiti'),
-                $combinedLength,
-                1000
-            )
+                        __('Errore salvataggio Rubrica: riassunto + contenuto superano il limite (%1$d/%2$d caratteri compresi di spazi).', 'transiti'),
+                        $combinedLength,
+                        2500
+                )
         );
 
         $postId = isset($postarr['ID']) ? (int) $postarr['ID'] : 0;
@@ -1741,10 +1741,10 @@ final class Plugin
     public static function registerViewsAdminColumns(): void
     {
         $postTypes = get_post_types(
-            array(
-                'show_ui' => true,
-            ),
-            'names'
+                array(
+                        'show_ui' => true,
+                ),
+                'names'
         );
 
         foreach ($postTypes as $postType) {
@@ -1839,9 +1839,9 @@ final class Plugin
 
         if (self::isLikelyPrefetchRequest() || self::hasViewSessionCookie($postId)) {
             wp_send_json_success(
-                array(
-                    'count' => (int) get_post_meta($postId, '_transiti_views_count', true),
-                )
+                    array(
+                            'count' => (int) get_post_meta($postId, '_transiti_views_count', true),
+                    )
             );
         }
 
@@ -1851,9 +1851,9 @@ final class Plugin
         self::setViewSessionCookie($postId);
 
         wp_send_json_success(
-            array(
-                'count' => $nextCount,
-            )
+                array(
+                        'count' => $nextCount,
+                )
         );
     }
 
@@ -1884,10 +1884,10 @@ final class Plugin
         update_post_meta($postId, '_transiti_podcast_episode_session_views', $episodeViews);
 
         wp_send_json_success(
-            array(
-                'count'      => $next,
-                'episodeKey' => $episodeKey,
-            )
+                array(
+                        'count'      => $next,
+                        'episodeKey' => $episodeKey,
+                )
         );
     }
 
@@ -1912,12 +1912,12 @@ final class Plugin
         }
 
         $signon = wp_signon(
-            array(
-                'user_login'    => $login,
-                'user_password' => $password,
-                'remember'      => $remember,
-            ),
-            is_ssl()
+                array(
+                        'user_login'    => $login,
+                        'user_password' => $password,
+                        'remember'      => $remember,
+                ),
+                is_ssl()
         );
 
         if (is_wp_error($signon)) {
@@ -1932,10 +1932,10 @@ final class Plugin
         }
 
         wp_send_json_success(
-            array(
-                'message'  => __('Accesso effettuato.', 'transiti'),
-                'redirect' => $redirect,
-            )
+                array(
+                        'message'  => __('Accesso effettuato.', 'transiti'),
+                        'redirect' => $redirect,
+                )
         );
     }
 
@@ -1954,9 +1954,9 @@ final class Plugin
         }
 
         wp_send_json_success(
-            array(
-                'message' => __('Se l’account esiste, riceverai un’email per reimpostare la password.', 'transiti'),
-            )
+                array(
+                        'message' => __('Se l’account esiste, riceverai un’email per reimpostare la password.', 'transiti'),
+                )
         );
     }
 
@@ -1983,10 +1983,10 @@ final class Plugin
 
         $episodes = get_field('episodi', $postIdInt);
         $rows = array_values(
-            array_filter(
-                is_array($episodes) ? $episodes : array(),
-                static fn($row): bool => is_array($row)
-            )
+                array_filter(
+                        is_array($episodes) ? $episodes : array(),
+                        static fn($row): bool => is_array($row)
+                )
         );
 
         $currentCount = count($rows);
@@ -2017,12 +2017,12 @@ final class Plugin
     {
         if (! get_role('redattore')) {
             add_role(
-                'redattore',
-                __('Redattore', 'transiti'),
-                array(
-                    'read'       => true,
-                    'edit_posts' => true,
-                )
+                    'redattore',
+                    __('Redattore', 'transiti'),
+                    array(
+                            'read'       => true,
+                            'edit_posts' => true,
+                    )
             );
         }
 
@@ -2044,9 +2044,9 @@ final class Plugin
         }
 
         $requiredTerms = array(
-            array('name' => 'Società', 'slug' => 'societa'),
-            array('name' => 'Letteratura', 'slug' => 'letteratura'),
-            array('name' => 'Cinema', 'slug' => 'cinema'),
+                array('name' => 'Società', 'slug' => 'societa'),
+                array('name' => 'Letteratura', 'slug' => 'letteratura'),
+                array('name' => 'Cinema', 'slug' => 'cinema'),
         );
 
         foreach ($requiredTerms as $requiredTerm) {
@@ -2126,9 +2126,9 @@ final class Plugin
             }
 
             if (
-                ! is_numeric($key)
-                && is_string($key)
-                && (is_bool($item) ? $item : ! empty($item))
+                    ! is_numeric($key)
+                    && is_string($key)
+                    && (is_bool($item) ? $item : ! empty($item))
             ) {
                 $values[] = $key;
             }
@@ -2210,10 +2210,10 @@ final class Plugin
         }
 
         $terms = get_terms(
-            array(
-                'taxonomy'   => 'sezioni',
-                'hide_empty' => false,
-            )
+                array(
+                        'taxonomy'   => 'sezioni',
+                        'hide_empty' => false,
+                )
         );
 
         if (is_wp_error($terms) || empty($terms)) {
@@ -2239,16 +2239,16 @@ final class Plugin
             }
 
             wp_update_nav_menu_item(
-                $menuId,
-                0,
-                array(
-                    'menu-item-title'     => $term->name,
-                    'menu-item-object'    => 'sezioni',
-                    'menu-item-object-id' => $termId,
-                    'menu-item-type'      => 'taxonomy',
-                    'menu-item-status'    => 'publish',
-                    'menu-item-parent-id' => 0,
-                )
+                    $menuId,
+                    0,
+                    array(
+                            'menu-item-title'     => $term->name,
+                            'menu-item-object'    => 'sezioni',
+                            'menu-item-object-id' => $termId,
+                            'menu-item-type'      => 'taxonomy',
+                            'menu-item-status'    => 'publish',
+                            'menu-item-parent-id' => 0,
+                    )
             );
         }
     }
@@ -2347,21 +2347,21 @@ final class Plugin
         if (is_array($existingItems)) {
             foreach ($existingItems as $item) {
                 if (
-                    ($item->type ?? '') === 'post_type_archive'
-                    && ($item->object ?? '') === 'rubrica'
+                        ($item->type ?? '') === 'post_type_archive'
+                        && ($item->object ?? '') === 'rubrica'
                 ) {
                     wp_update_nav_menu_item(
-                        $menuId,
-                        (int) $item->ID,
-                        array(
-                            'menu-item-title'     => __('Il Rovescio e il Diritto', 'transiti'),
-                            'menu-item-object'    => 'rubrica',
-                            'menu-item-object-id' => 0,
-                            'menu-item-type'      => 'post_type_archive',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                            'menu-item-position'  => $targetPosition,
-                        )
+                            $menuId,
+                            (int) $item->ID,
+                            array(
+                                    'menu-item-title'     => __('Il Rovescio e il Diritto', 'transiti'),
+                                    'menu-item-object'    => 'rubrica',
+                                    'menu-item-object-id' => 0,
+                                    'menu-item-type'      => 'post_type_archive',
+                                    'menu-item-status'    => 'publish',
+                                    'menu-item-parent-id' => 0,
+                                    'menu-item-position'  => $targetPosition,
+                            )
                     );
 
                     return;
@@ -2370,17 +2370,17 @@ final class Plugin
         }
 
         wp_update_nav_menu_item(
-            $menuId,
-            0,
-            array(
-                'menu-item-title'     => __('Il Rovescio e il Diritto', 'transiti'),
-                'menu-item-object'    => 'rubrica',
-                'menu-item-object-id' => 0,
-                'menu-item-type'      => 'post_type_archive',
-                'menu-item-status'    => 'publish',
-                'menu-item-parent-id' => 0,
-                'menu-item-position'  => $targetPosition,
-            )
+                $menuId,
+                0,
+                array(
+                        'menu-item-title'     => __('Il Rovescio e il Diritto', 'transiti'),
+                        'menu-item-object'    => 'rubrica',
+                        'menu-item-object-id' => 0,
+                        'menu-item-type'      => 'post_type_archive',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => 0,
+                        'menu-item-position'  => $targetPosition,
+                )
         );
     }
 
@@ -2402,22 +2402,22 @@ final class Plugin
         if (is_array($existingItems)) {
             foreach ($existingItems as $item) {
                 if (
-                    ($item->type ?? '') === 'post_type'
-                    && ($item->object ?? '') === 'page'
-                    && (int) ($item->object_id ?? 0) === (int) $aboutPage->ID
+                        ($item->type ?? '') === 'post_type'
+                        && ($item->object ?? '') === 'page'
+                        && (int) ($item->object_id ?? 0) === (int) $aboutPage->ID
                 ) {
                     wp_update_nav_menu_item(
-                        $menuId,
-                        (int) $item->ID,
-                        array(
-                            'menu-item-title'     => $aboutPage->post_title,
-                            'menu-item-object'    => 'page',
-                            'menu-item-object-id' => (int) $aboutPage->ID,
-                            'menu-item-type'      => 'post_type',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                            'menu-item-position'  => $targetPosition,
-                        )
+                            $menuId,
+                            (int) $item->ID,
+                            array(
+                                    'menu-item-title'     => $aboutPage->post_title,
+                                    'menu-item-object'    => 'page',
+                                    'menu-item-object-id' => (int) $aboutPage->ID,
+                                    'menu-item-type'      => 'post_type',
+                                    'menu-item-status'    => 'publish',
+                                    'menu-item-parent-id' => 0,
+                                    'menu-item-position'  => $targetPosition,
+                            )
                     );
 
                     return;
@@ -2426,17 +2426,17 @@ final class Plugin
         }
 
         wp_update_nav_menu_item(
-            $menuId,
-            0,
-            array(
-                'menu-item-title'     => $aboutPage->post_title,
-                'menu-item-object'    => 'page',
-                'menu-item-object-id' => (int) $aboutPage->ID,
-                'menu-item-type'      => 'post_type',
-                'menu-item-status'    => 'publish',
-                'menu-item-parent-id' => 0,
-                'menu-item-position'  => $targetPosition,
-            )
+                $menuId,
+                0,
+                array(
+                        'menu-item-title'     => $aboutPage->post_title,
+                        'menu-item-object'    => 'page',
+                        'menu-item-object-id' => (int) $aboutPage->ID,
+                        'menu-item-type'      => 'post_type',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => 0,
+                        'menu-item-position'  => $targetPosition,
+                )
         );
     }
 
@@ -2460,22 +2460,22 @@ final class Plugin
         if (is_array($existingItems)) {
             foreach ($existingItems as $item) {
                 if (
-                    ($item->type ?? '') === 'post_type'
-                    && ($item->object ?? '') === 'page'
-                    && (int) ($item->object_id ?? 0) === (int) $forumPage->ID
+                        ($item->type ?? '') === 'post_type'
+                        && ($item->object ?? '') === 'page'
+                        && (int) ($item->object_id ?? 0) === (int) $forumPage->ID
                 ) {
                     wp_update_nav_menu_item(
-                        $menuId,
-                        (int) $item->ID,
-                        array(
-                            'menu-item-title'     => $forumPage->post_title,
-                            'menu-item-object'    => 'page',
-                            'menu-item-object-id' => (int) $forumPage->ID,
-                            'menu-item-type'      => 'post_type',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                            'menu-item-position'  => $targetPosition,
-                        )
+                            $menuId,
+                            (int) $item->ID,
+                            array(
+                                    'menu-item-title'     => $forumPage->post_title,
+                                    'menu-item-object'    => 'page',
+                                    'menu-item-object-id' => (int) $forumPage->ID,
+                                    'menu-item-type'      => 'post_type',
+                                    'menu-item-status'    => 'publish',
+                                    'menu-item-parent-id' => 0,
+                                    'menu-item-position'  => $targetPosition,
+                            )
                     );
 
                     return;
@@ -2484,17 +2484,17 @@ final class Plugin
         }
 
         wp_update_nav_menu_item(
-            $menuId,
-            0,
-            array(
-                'menu-item-title'     => $forumPage->post_title,
-                'menu-item-object'    => 'page',
-                'menu-item-object-id' => (int) $forumPage->ID,
-                'menu-item-type'      => 'post_type',
-                'menu-item-status'    => 'publish',
-                'menu-item-parent-id' => 0,
-                'menu-item-position'  => $targetPosition,
-            )
+                $menuId,
+                0,
+                array(
+                        'menu-item-title'     => $forumPage->post_title,
+                        'menu-item-object'    => 'page',
+                        'menu-item-object-id' => (int) $forumPage->ID,
+                        'menu-item-type'      => 'post_type',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => 0,
+                        'menu-item-position'  => $targetPosition,
+                )
         );
     }
 
@@ -2519,22 +2519,22 @@ final class Plugin
         if (is_array($existingItems)) {
             foreach ($existingItems as $item) {
                 if (
-                    ($item->type ?? '') === 'post_type'
-                    && ($item->object ?? '') === 'page'
-                    && (int) ($item->object_id ?? 0) === (int) $contactPage->ID
+                        ($item->type ?? '') === 'post_type'
+                        && ($item->object ?? '') === 'page'
+                        && (int) ($item->object_id ?? 0) === (int) $contactPage->ID
                 ) {
                     wp_update_nav_menu_item(
-                        $menuId,
-                        (int) $item->ID,
-                        array(
-                            'menu-item-title'     => $contactPage->post_title,
-                            'menu-item-object'    => 'page',
-                            'menu-item-object-id' => (int) $contactPage->ID,
-                            'menu-item-type'      => 'post_type',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                            'menu-item-position'  => $targetPosition,
-                        )
+                            $menuId,
+                            (int) $item->ID,
+                            array(
+                                    'menu-item-title'     => $contactPage->post_title,
+                                    'menu-item-object'    => 'page',
+                                    'menu-item-object-id' => (int) $contactPage->ID,
+                                    'menu-item-type'      => 'post_type',
+                                    'menu-item-status'    => 'publish',
+                                    'menu-item-parent-id' => 0,
+                                    'menu-item-position'  => $targetPosition,
+                            )
                     );
 
                     return;
@@ -2543,17 +2543,17 @@ final class Plugin
         }
 
         wp_update_nav_menu_item(
-            $menuId,
-            0,
-            array(
-                'menu-item-title'     => $contactPage->post_title,
-                'menu-item-object'    => 'page',
-                'menu-item-object-id' => (int) $contactPage->ID,
-                'menu-item-type'      => 'post_type',
-                'menu-item-status'    => 'publish',
-                'menu-item-parent-id' => 0,
-                'menu-item-position'  => $targetPosition,
-            )
+                $menuId,
+                0,
+                array(
+                        'menu-item-title'     => $contactPage->post_title,
+                        'menu-item-object'    => 'page',
+                        'menu-item-object-id' => (int) $contactPage->ID,
+                        'menu-item-type'      => 'post_type',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => 0,
+                        'menu-item-position'  => $targetPosition,
+                )
         );
     }
 
@@ -2577,21 +2577,21 @@ final class Plugin
         if (is_array($existingItems)) {
             foreach ($existingItems as $item) {
                 if (
-                    ($item->type ?? '') === 'post_type_archive'
-                    && ($item->object ?? '') === 'podcast'
+                        ($item->type ?? '') === 'post_type_archive'
+                        && ($item->object ?? '') === 'podcast'
                 ) {
                     wp_update_nav_menu_item(
-                        $menuId,
-                        (int) $item->ID,
-                        array(
-                            'menu-item-title'     => __('Podcast', 'transiti'),
-                            'menu-item-object'    => 'podcast',
-                            'menu-item-object-id' => 0,
-                            'menu-item-type'      => 'post_type_archive',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                            'menu-item-position'  => $targetPosition,
-                        )
+                            $menuId,
+                            (int) $item->ID,
+                            array(
+                                    'menu-item-title'     => __('Podcast', 'transiti'),
+                                    'menu-item-object'    => 'podcast',
+                                    'menu-item-object-id' => 0,
+                                    'menu-item-type'      => 'post_type_archive',
+                                    'menu-item-status'    => 'publish',
+                                    'menu-item-parent-id' => 0,
+                                    'menu-item-position'  => $targetPosition,
+                            )
                     );
 
                     return;
@@ -2600,17 +2600,17 @@ final class Plugin
         }
 
         wp_update_nav_menu_item(
-            $menuId,
-            0,
-            array(
-                'menu-item-title'     => __('Podcast', 'transiti'),
-                'menu-item-object'    => 'podcast',
-                'menu-item-object-id' => 0,
-                'menu-item-type'      => 'post_type_archive',
-                'menu-item-status'    => 'publish',
-                'menu-item-parent-id' => 0,
-                'menu-item-position'  => $targetPosition,
-            )
+                $menuId,
+                0,
+                array(
+                        'menu-item-title'     => __('Podcast', 'transiti'),
+                        'menu-item-object'    => 'podcast',
+                        'menu-item-object-id' => 0,
+                        'menu-item-type'      => 'post_type_archive',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => 0,
+                        'menu-item-position'  => $targetPosition,
+                )
         );
     }
 
@@ -2631,21 +2631,21 @@ final class Plugin
         if (is_array($existingItems)) {
             foreach ($existingItems as $item) {
                 if (
-                    ($item->type ?? '') === 'post_type_archive'
-                    && ($item->object ?? '') === 'rivista'
+                        ($item->type ?? '') === 'post_type_archive'
+                        && ($item->object ?? '') === 'rivista'
                 ) {
                     wp_update_nav_menu_item(
-                        $menuId,
-                        (int) $item->ID,
-                        array(
-                            'menu-item-title'     => __('La rivista', 'transiti'),
-                            'menu-item-object'    => 'rivista',
-                            'menu-item-object-id' => 0,
-                            'menu-item-type'      => 'post_type_archive',
-                            'menu-item-status'    => 'publish',
-                            'menu-item-parent-id' => 0,
-                            'menu-item-position'  => $targetPosition,
-                        )
+                            $menuId,
+                            (int) $item->ID,
+                            array(
+                                    'menu-item-title'     => __('La rivista', 'transiti'),
+                                    'menu-item-object'    => 'rivista',
+                                    'menu-item-object-id' => 0,
+                                    'menu-item-type'      => 'post_type_archive',
+                                    'menu-item-status'    => 'publish',
+                                    'menu-item-parent-id' => 0,
+                                    'menu-item-position'  => $targetPosition,
+                            )
                     );
 
                     return;
@@ -2654,17 +2654,17 @@ final class Plugin
         }
 
         wp_update_nav_menu_item(
-            $menuId,
-            0,
-            array(
-                'menu-item-title'     => __('La rivista', 'transiti'),
-                'menu-item-object'    => 'rivista',
-                'menu-item-object-id' => 0,
-                'menu-item-type'      => 'post_type_archive',
-                'menu-item-status'    => 'publish',
-                'menu-item-parent-id' => 0,
-                'menu-item-position'  => $targetPosition,
-            )
+                $menuId,
+                0,
+                array(
+                        'menu-item-title'     => __('La rivista', 'transiti'),
+                        'menu-item-object'    => 'rivista',
+                        'menu-item-object-id' => 0,
+                        'menu-item-type'      => 'post_type_archive',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => 0,
+                        'menu-item-position'  => $targetPosition,
+                )
         );
     }
 
@@ -2687,11 +2687,11 @@ final class Plugin
         }
 
         $pages = get_posts(
-            array(
-                'post_type'      => 'page',
-                'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                'posts_per_page' => 50,
-            )
+                array(
+                        'post_type'      => 'page',
+                        'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                        'posts_per_page' => 50,
+                )
         );
 
         foreach ($pages as $page) {
@@ -2701,12 +2701,12 @@ final class Plugin
         }
 
         $maybeForumPages = get_posts(
-            array(
-                'post_type'      => 'page',
-                'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                'posts_per_page' => 1,
-                'title'          => 'Forum',
-            )
+                array(
+                        'post_type'      => 'page',
+                        'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                        'posts_per_page' => 1,
+                        'title'          => 'Forum',
+                )
         );
 
         if (! empty($maybeForumPages) && $maybeForumPages[0] instanceof \WP_Post) {
@@ -2724,12 +2724,12 @@ final class Plugin
         }
 
         $maybeContactPages = get_posts(
-            array(
-                'post_type'      => 'page',
-                'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                'posts_per_page' => 1,
-                'title'          => 'Contattaci',
-            )
+                array(
+                        'post_type'      => 'page',
+                        'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                        'posts_per_page' => 1,
+                        'title'          => 'Contattaci',
+                )
         );
 
         if (! empty($maybeContactPages) && $maybeContactPages[0] instanceof \WP_Post) {
@@ -2747,12 +2747,12 @@ final class Plugin
         }
 
         $maybeProfilePages = get_posts(
-            array(
-                'post_type'      => 'page',
-                'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                'posts_per_page' => 1,
-                'title'          => 'Profilo',
-            )
+                array(
+                        'post_type'      => 'page',
+                        'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                        'posts_per_page' => 1,
+                        'title'          => 'Profilo',
+                )
         );
 
         if (! empty($maybeProfilePages) && $maybeProfilePages[0] instanceof \WP_Post) {
@@ -2770,12 +2770,12 @@ final class Plugin
         }
 
         $maybeAboutPages = get_posts(
-            array(
-                'post_type'      => 'page',
-                'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                'posts_per_page' => 1,
-                'title'          => 'Chi siamo',
-            )
+                array(
+                        'post_type'      => 'page',
+                        'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                        'posts_per_page' => 1,
+                        'title'          => 'Chi siamo',
+                )
         );
 
         if (! empty($maybeAboutPages) && $maybeAboutPages[0] instanceof \WP_Post) {
@@ -2844,26 +2844,26 @@ final class Plugin
             }
 
             if (
-                $forumPageId > 0
-                && ($item->type ?? '') === 'post_type'
-                && ($item->object ?? '') === 'page'
-                && (int) ($item->object_id ?? 0) === $forumPageId
+                    $forumPageId > 0
+                    && ($item->type ?? '') === 'post_type'
+                    && ($item->object ?? '') === 'page'
+                    && (int) ($item->object_id ?? 0) === $forumPageId
             ) {
                 $forumPosition = $position;
             }
 
             if (
-                ($item->type ?? '') === 'post_type_archive'
-                && ($item->object ?? '') === 'podcast'
+                    ($item->type ?? '') === 'post_type_archive'
+                    && ($item->object ?? '') === 'podcast'
             ) {
                 $podcastPosition = $position;
             }
 
             if (
-                ($item->type ?? '') === 'post_type'
-                && ($item->object ?? '') === 'page'
-                && $aboutPageId > 0
-                && (int) ($item->object_id ?? 0) === $aboutPageId
+                    ($item->type ?? '') === 'post_type'
+                    && ($item->object ?? '') === 'page'
+                    && $aboutPageId > 0
+                    && (int) ($item->object_id ?? 0) === $aboutPageId
             ) {
                 $aboutPosition = $position;
             }
@@ -2903,10 +2903,10 @@ final class Plugin
             }
 
             if (
-                $forumPageId > 0
-                && ($item->type ?? '') === 'post_type'
-                && ($item->object ?? '') === 'page'
-                && (int) ($item->object_id ?? 0) === $forumPageId
+                    $forumPageId > 0
+                    && ($item->type ?? '') === 'post_type'
+                    && ($item->object ?? '') === 'page'
+                    && (int) ($item->object_id ?? 0) === $forumPageId
             ) {
                 $forumPosition = $position;
             }
@@ -2939,15 +2939,15 @@ final class Plugin
             }
 
             if (
-                ($item->type ?? '') === 'post_type_archive'
-                && ($item->object ?? '') === 'rivista'
+                    ($item->type ?? '') === 'post_type_archive'
+                    && ($item->object ?? '') === 'rivista'
             ) {
                 $rivistaPosition = $position;
             }
 
             if (
-                ($item->type ?? '') === 'post_type_archive'
-                && ($item->object ?? '') === 'podcast'
+                    ($item->type ?? '') === 'post_type_archive'
+                    && ($item->object ?? '') === 'podcast'
             ) {
                 $podcastPosition = $position;
             }
@@ -2983,8 +2983,8 @@ final class Plugin
             }
 
             if (
-                ($item->type ?? '') === 'post_type_archive'
-                && ($item->object ?? '') === 'podcast'
+                    ($item->type ?? '') === 'post_type_archive'
+                    && ($item->object ?? '') === 'podcast'
             ) {
                 $podcastPosition = $position;
             }
@@ -3025,8 +3025,8 @@ final class Plugin
 
                 $title = trim(wp_strip_all_tags((string) ($item->title ?? '')));
                 if (
-                    ($sguardiTermId > 0 && (int) ($item->object_id ?? 0) === $sguardiTermId)
-                    || strcasecmp($title, 'Sguardi') === 0
+                        ($sguardiTermId > 0 && (int) ($item->object_id ?? 0) === $sguardiTermId)
+                        || strcasecmp($title, 'Sguardi') === 0
                 ) {
                     $sguardiPosition = $position;
                 }
@@ -3069,26 +3069,26 @@ final class Plugin
 
         $buildItem = static function (string $title, string $url): \WP_Post {
             return new \WP_Post((object) array(
-                'ID'                   => 0,
-                'db_id'                => 0,
-                'menu_item_parent'     => 0,
-                'object_id'            => 0,
-                'object'               => 'custom',
-                'type'                 => 'custom',
-                'type_label'           => __('Custom Link', 'transiti'),
-                'title'                => $title,
-                'url'                  => $url,
-                'target'               => '',
-                'attr_title'           => '',
-                'description'          => '',
-                'classes'              => array('menu-item', 'menu-item-type-custom', 'menu-item-object-custom'),
-                'xfn'                  => '',
-                'current'              => false,
-                'current_item_ancestor'=> false,
-                'current_item_parent'  => false,
-                'menu_order'           => 9999,
-                'post_type'            => 'nav_menu_item',
-                'post_status'          => 'publish',
+                    'ID'                   => 0,
+                    'db_id'                => 0,
+                    'menu_item_parent'     => 0,
+                    'object_id'            => 0,
+                    'object'               => 'custom',
+                    'type'                 => 'custom',
+                    'type_label'           => __('Custom Link', 'transiti'),
+                    'title'                => $title,
+                    'url'                  => $url,
+                    'target'               => '',
+                    'attr_title'           => '',
+                    'description'          => '',
+                    'classes'              => array('menu-item', 'menu-item-type-custom', 'menu-item-object-custom'),
+                    'xfn'                  => '',
+                    'current'              => false,
+                    'current_item_ancestor'=> false,
+                    'current_item_parent'  => false,
+                    'menu_order'           => 9999,
+                    'post_type'            => 'nav_menu_item',
+                    'post_status'          => 'publish',
             ));
         };
 
@@ -3097,8 +3097,8 @@ final class Plugin
             $podcastExists = false;
             foreach ($items as $item) {
                 if (
-                    (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
-                    || untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($podcastUrl)
+                        (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
+                        || untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($podcastUrl)
                 ) {
                     $podcastExists = true;
                     break;
@@ -3122,15 +3122,15 @@ final class Plugin
 
             foreach ($items as $index => $item) {
                 if (
-                    (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'rivista')
-                    || untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($rivistaUrl)
+                        (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'rivista')
+                        || untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($rivistaUrl)
                 ) {
                     $rivistaExists = true;
                 }
 
                 if (
-                    (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
-                    || (is_string($podcastUrl) && $podcastUrl !== '' && untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($podcastUrl))
+                        (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
+                        || (is_string($podcastUrl) && $podcastUrl !== '' && untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($podcastUrl))
                 ) {
                     $podcastIndex = (int) $index;
                 }
@@ -3209,12 +3209,12 @@ final class Plugin
 
         if (! $homePage instanceof \WP_Post) {
             $maybeHomePages = get_posts(
-                array(
-                    'post_type'      => 'page',
-                    'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                    'posts_per_page' => 1,
-                    'title'          => 'Home',
-                )
+                    array(
+                            'post_type'      => 'page',
+                            'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                            'posts_per_page' => 1,
+                            'title'          => 'Home',
+                    )
             );
 
             if (! empty($maybeHomePages) && $maybeHomePages[0] instanceof \WP_Post) {
@@ -3224,14 +3224,14 @@ final class Plugin
 
         if (! $homePage instanceof \WP_Post) {
             $homePageId = wp_insert_post(
-                array(
-                    'post_title'   => 'Home',
-                    'post_name'    => 'home',
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'post_content' => '',
-                ),
-                true
+                    array(
+                            'post_title'   => 'Home',
+                            'post_name'    => 'home',
+                            'post_status'  => 'publish',
+                            'post_type'    => 'page',
+                            'post_content' => '',
+                    ),
+                    true
             );
 
             if (is_wp_error($homePageId) || ! is_int($homePageId)) {
@@ -3256,12 +3256,12 @@ final class Plugin
 
         if (! $contactPage instanceof \WP_Post) {
             $maybeContactPages = get_posts(
-                array(
-                    'post_type'      => 'page',
-                    'post_status'    => array('publish', 'draft', 'pending', 'private'),
-                    'posts_per_page' => 1,
-                    'title'          => 'Contattaci',
-                )
+                    array(
+                            'post_type'      => 'page',
+                            'post_status'    => array('publish', 'draft', 'pending', 'private'),
+                            'posts_per_page' => 1,
+                            'title'          => 'Contattaci',
+                    )
             );
 
             if (! empty($maybeContactPages) && $maybeContactPages[0] instanceof \WP_Post) {
@@ -3271,14 +3271,14 @@ final class Plugin
 
         if (! $contactPage instanceof \WP_Post) {
             $contactPageId = wp_insert_post(
-                array(
-                    'post_title'   => 'Contattaci',
-                    'post_name'    => 'contattaci',
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'post_content' => '',
-                ),
-                true
+                    array(
+                            'post_title'   => 'Contattaci',
+                            'post_name'    => 'contattaci',
+                            'post_status'  => 'publish',
+                            'post_type'    => 'page',
+                            'post_content' => '',
+                    ),
+                    true
             );
 
             if (is_wp_error($contactPageId) || ! is_int($contactPageId)) {
@@ -3301,14 +3301,14 @@ final class Plugin
 
         if (! $profilePage instanceof \WP_Post) {
             $profilePageId = wp_insert_post(
-                array(
-                    'post_title'   => 'Profilo',
-                    'post_name'    => 'profilo',
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'post_content' => '',
-                ),
-                true
+                    array(
+                            'post_title'   => 'Profilo',
+                            'post_name'    => 'profilo',
+                            'post_status'  => 'publish',
+                            'post_type'    => 'page',
+                            'post_content' => '',
+                    ),
+                    true
             );
 
             if (is_wp_error($profilePageId) || ! is_int($profilePageId)) {
@@ -3331,14 +3331,14 @@ final class Plugin
 
         if (! $aboutPage instanceof \WP_Post) {
             $aboutPageId = wp_insert_post(
-                array(
-                    'post_title'   => 'Chi siamo',
-                    'post_name'    => 'chi-siamo',
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'post_content' => '',
-                ),
-                true
+                    array(
+                            'post_title'   => 'Chi siamo',
+                            'post_name'    => 'chi-siamo',
+                            'post_status'  => 'publish',
+                            'post_type'    => 'page',
+                            'post_content' => '',
+                    ),
+                    true
             );
 
             if (is_wp_error($aboutPageId) || ! is_int($aboutPageId)) {
@@ -3424,9 +3424,9 @@ final class Plugin
         }
 
         return array(
-            'url' => esc_url_raw(trim($feedUrl)),
-            'fallback_image_id' => $fallbackImageId,
-            'image_class' => sanitize_html_class(trim($imageClass)),
+                'url' => esc_url_raw(trim($feedUrl)),
+                'fallback_image_id' => $fallbackImageId,
+                'image_class' => sanitize_html_class(trim($imageClass)),
         );
     }
 
@@ -3436,15 +3436,15 @@ final class Plugin
     private static function fetchCatalogFeedItems(string $feedUrl, string $imageClass): array
     {
         $response = wp_remote_get(
-            $feedUrl,
-            array(
-                'timeout' => 12,
-                'redirection' => 3,
-                'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-                'headers' => array(
-                    'Accept' => 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5',
-                ),
-            )
+                $feedUrl,
+                array(
+                        'timeout' => 12,
+                        'redirection' => 3,
+                        'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+                        'headers' => array(
+                                'Accept' => 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5',
+                        ),
+                )
         );
 
         if (is_wp_error($response)) {
@@ -3485,9 +3485,9 @@ final class Plugin
             $imageUrl = self::fetchImageUrlFromItemPage($link, $imageClass);
 
             $items[] = array(
-                'title' => $title,
-                'link' => $link,
-                'image_url' => $imageUrl,
+                    'title' => $title,
+                    'link' => $link,
+                    'image_url' => $imageUrl,
             );
         }
 
@@ -3497,15 +3497,15 @@ final class Plugin
     private static function fetchImageUrlFromItemPage(string $url, string $imageClass): string
     {
         $response = wp_remote_get(
-            $url,
-            array(
-                'timeout' => 10,
-                'redirection' => 3,
-                'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-                'headers' => array(
-                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                ),
-            )
+                $url,
+                array(
+                        'timeout' => 10,
+                        'redirection' => 3,
+                        'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+                        'headers' => array(
+                                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        ),
+                )
         );
 
         if (is_wp_error($response)) {
@@ -3534,11 +3534,11 @@ final class Plugin
     {
         // Target esplicito: <div class="woocommerce-product-gallery__image"><a href="...">
         if (
-            preg_match(
-                '/<div[^>]*class="[^"]*woocommerce-product-gallery__image[^"]*"[^>]*>.*?<a[^>]+href=["\']([^"\']+)["\']/is',
-                $html,
-                $m
-            ) === 1
+                preg_match(
+                        '/<div[^>]*class="[^"]*woocommerce-product-gallery__image[^"]*"[^>]*>.*?<a[^>]+href=["\']([^"\']+)["\']/is',
+                        $html,
+                        $m
+                ) === 1
         ) {
             $href = esc_url_raw(trim((string) ($m[1] ?? '')));
             if ($href !== '') {
@@ -3589,23 +3589,23 @@ final class Plugin
 
         $xpath = new \DOMXPath($dom);
         $queries = array(
-            '//meta[@property="og:image"]/@content',
-            '//meta[@name="twitter:image"]/@content',
-            '//img[contains(concat(" ", normalize-space(@class), " "), " wp-post-image ")]',
-            '//figure[contains(@class, "woocommerce-product-gallery")]//img',
-            '//div[contains(@class, "woocommerce-product-gallery")]//img',
+                '//meta[@property="og:image"]/@content',
+                '//meta[@name="twitter:image"]/@content',
+                '//img[contains(concat(" ", normalize-space(@class), " "), " wp-post-image ")]',
+                '//figure[contains(@class, "woocommerce-product-gallery")]//img',
+                '//div[contains(@class, "woocommerce-product-gallery")]//img',
         );
 
         $classCandidates = array_filter(array_unique(array_map('strtolower', array(
-            trim($imageClass),
-            'zoomimg',
-            'imgzoom',
+                trim($imageClass),
+                'zoomimg',
+                'imgzoom',
         ))));
 
         foreach ($classCandidates as $classCandidate) {
             $queries[] = sprintf(
-                '//img[contains(concat(" ", translate(normalize-space(@class), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), " "), " %s ")]',
-                $classCandidate
+                    '//img[contains(concat(" ", translate(normalize-space(@class), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), " "), " %s ")]',
+                    $classCandidate
             );
         }
 
@@ -3672,10 +3672,10 @@ final class Plugin
         }
 
         $candidateAttributes = array(
-            'data-large_image',
-            'data-src',
-            'data-lazy-src',
-            'src',
+                'data-large_image',
+                'data-src',
+                'data-lazy-src',
+                'src',
         );
 
         foreach ($candidateAttributes as $attribute) {
@@ -3738,18 +3738,18 @@ final class Plugin
         }
 
         wp_enqueue_style(
-            'transiti-swiper',
-            'https://cdn.jsdelivr.net/npm/swiper@latest/swiper-bundle.min.css',
-            array(),
-            null
+                'transiti-swiper',
+                'https://cdn.jsdelivr.net/npm/swiper@latest/swiper-bundle.min.css',
+                array(),
+                null
         );
 
         wp_enqueue_script(
-            'transiti-swiper',
-            'https://cdn.jsdelivr.net/npm/swiper@latest/swiper-bundle.min.js',
-            array(),
-            null,
-            true
+                'transiti-swiper',
+                'https://cdn.jsdelivr.net/npm/swiper@latest/swiper-bundle.min.js',
+                array(),
+                null,
+                true
         );
     }
 }
