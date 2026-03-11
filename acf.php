@@ -636,6 +636,105 @@ function transiti_register_acf_configuration_fields(): void
         ),
     ));
     acf_add_local_field_group(array(
+        'key' => 'group_transiti_eventi',
+        'title' => __('Dati Evento', 'transiti'),
+        'fields' => array(
+            array(
+                'key' => 'field_transiti_eventi_luogo',
+                'label' => __('Luogo', 'transiti'),
+                'name' => 'luogo',
+                'type' => 'google_map',
+                'center_lat' => '41.902782',
+                'center_lng' => '12.496366',
+                'zoom' => 14,
+                'height' => 320,
+            ),
+            array(
+                'key' => 'field_transiti_eventi_data',
+                'label' => __('Data evento', 'transiti'),
+                'name' => 'data_evento',
+                'type' => 'date_picker',
+                'display_format' => 'd/m/Y',
+                'return_format' => 'Y-m-d',
+                'first_day' => 1,
+            ),
+            array(
+                'key' => 'field_transiti_eventi_orario',
+                'label' => __('Orario evento', 'transiti'),
+                'name' => 'orario_evento',
+                'type' => 'time_picker',
+                'display_format' => 'H:i',
+                'return_format' => 'H:i',
+            ),
+            array(
+                'key' => 'field_transiti_eventi_relatori',
+                'label' => __('Relatori', 'transiti'),
+                'name' => 'relatori',
+                'type' => 'repeater',
+                'layout' => 'block',
+                'button_label' => __('Aggiungi relatore', 'transiti'),
+                'sub_fields' => array(
+                    array(
+                        'key' => 'field_transiti_eventi_relatore_nome',
+                        'label' => __('Nome', 'transiti'),
+                        'name' => 'nome',
+                        'type' => 'text',
+                    ),
+                    array(
+                        'key' => 'field_transiti_eventi_relatore_ruolo',
+                        'label' => __('Ruolo', 'transiti'),
+                        'name' => 'ruolo',
+                        'type' => 'text',
+                    ),
+                    array(
+                        'key' => 'field_transiti_eventi_relatore_bio',
+                        'label' => __('Bio', 'transiti'),
+                        'name' => 'bio',
+                        'type' => 'textarea',
+                        'rows' => 4,
+                        'new_lines' => 'br',
+                    ),
+                ),
+            ),
+            array(
+                'key' => 'field_transiti_eventi_galleria',
+                'label' => __('Galleria', 'transiti'),
+                'name' => 'galleria',
+                'type' => 'gallery',
+                'return_format' => 'id',
+                'preview_size' => 'medium',
+                'library' => 'all',
+                'min' => 0,
+                'insert' => 'append',
+            ),
+            array(
+                'key' => 'field_transiti_eventi_argomenti',
+                'label' => __('Argomenti', 'transiti'),
+                'name' => 'argomenti',
+                'type' => 'repeater',
+                'layout' => 'table',
+                'button_label' => __('Aggiungi argomento', 'transiti'),
+                'sub_fields' => array(
+                    array(
+                        'key' => 'field_transiti_eventi_argomento_nome',
+                        'label' => __('Argomento', 'transiti'),
+                        'name' => 'argomento',
+                        'type' => 'text',
+                    ),
+                ),
+            ),
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'eventi',
+                ),
+            ),
+        ),
+    ));
+    acf_add_local_field_group(array(
         'key' => 'group_transiti_user_profile',
         'title' => __('Profilo Utente', 'transiti'),
         'fields' => array(

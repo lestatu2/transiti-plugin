@@ -8,6 +8,7 @@ use Fabermind\Transiti\Admin\Admin;
 
 final class Plugin
 {
+    private const FORUM_PAGE_TEMPLATE = 'page-forum.php';
     private const PROFILE_PAGE_TEMPLATE = 'transiti-profile-template.php';
     private const ABOUT_PAGE_TEMPLATE = 'transiti-about-template.php';
     private const RUBRICA_MAX_COMBINED_LENGTH_DEFAULT = 2500;
@@ -36,11 +37,14 @@ final class Plugin
         add_action('wp_ajax_nopriv_transiti_track_podcast_session_view', [self::class, 'trackPodcastEpisodeSessionView']);
         add_action('wp_ajax_nopriv_transiti_custom_login', [self::class, 'handleCustomLoginAjax']);
         add_action('wp_ajax_nopriv_transiti_custom_lost_password', [self::class, 'handleCustomLostPasswordAjax']);
+        add_action('admin_post_nopriv_transiti_forum_register', [self::class, 'handleForumRegistration']);
+        add_action('init', [self::class, 'maybeActivateForumRegistration']);
         add_filter('wp_insert_post_data', [self::class, 'validateRubricaCombinedLengthOnSave'], 10, 2);
         add_action('admin_notices', [self::class, 'printRubricaValidationAdminNotice']);
         add_filter('wp_nav_menu_objects', [self::class, 'injectPodcastMenuItemAtRender'], 20, 2);
         add_filter('theme_page_templates', [self::class, 'registerProfilePageTemplate']);
         add_filter('template_include', [self::class, 'resolveProfilePageTemplate'], 99);
+        add_filter('authenticate', [self::class, 'blockPendingForumUserAuthentication'], 30, 3);
         add_filter('pre_insert_term', [self::class, 'restrictSezioniTermCreation'], 10, 2);
         add_filter('manage_rivista_posts_columns', [self::class, 'addRivistaAdminColumns']);
         add_action('manage_rivista_posts_custom_column', [self::class, 'renderRivistaAdminColumn'], 10, 2);
@@ -199,6 +203,38 @@ final class Plugin
                         'supports'            => array('title', 'editor', 'excerpt', 'thumbnail'),
                         'has_archive'         => true,
                         'rewrite'             => array('slug' => 'podcast'),
+                        'exclude_from_search' => false,
+                        'publicly_queryable'  => true,
+                )
+        );
+
+        register_post_type(
+                'eventi',
+                array(
+                        'labels' => array(
+                                'name'               => __('Eventi', 'transiti'),
+                                'singular_name'      => __('Evento', 'transiti'),
+                                'menu_name'          => __('Eventi', 'transiti'),
+                                'name_admin_bar'     => __('Evento', 'transiti'),
+                                'add_new'            => __('Aggiungi evento', 'transiti'),
+                                'add_new_item'       => __('Aggiungi evento', 'transiti'),
+                                'edit_item'          => __('Modifica evento', 'transiti'),
+                                'new_item'           => __('Nuovo evento', 'transiti'),
+                                'view_item'          => __('Vedi evento', 'transiti'),
+                                'view_items'         => __('Vedi eventi', 'transiti'),
+                                'search_items'       => __('Cerca eventi', 'transiti'),
+                                'all_items'          => __('Tutti gli eventi', 'transiti'),
+                                'archives'           => __('Archivio eventi', 'transiti'),
+                                'not_found'          => __('Nessun evento trovato', 'transiti'),
+                                'not_found_in_trash' => __('Nessun evento nel cestino', 'transiti'),
+                        ),
+                        'public'              => true,
+                        'show_in_rest'        => true,
+                        'menu_position'       => 26,
+                        'menu_icon'           => 'dashicons-calendar-alt',
+                        'supports'            => array('title', 'editor', 'excerpt', 'thumbnail'),
+                        'has_archive'         => true,
+                        'rewrite'             => array('slug' => 'eventi'),
                         'exclude_from_search' => false,
                         'publicly_queryable'  => true,
                 )
@@ -1975,6 +2011,214 @@ final class Plugin
         );
     }
 
+    public static function handleForumRegistration(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            wp_safe_redirect(self::getForumRegistrationRedirectUrl());
+            exit;
+        }
+
+        if (is_user_logged_in()) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('already_logged'));
+            exit;
+        }
+
+        check_admin_referer('transiti_forum_register', 'transiti_forum_register_nonce');
+
+        $redirect = isset($_POST['redirect_to']) ? esc_url_raw((string) wp_unslash($_POST['redirect_to'])) : '';
+        if ($redirect === '') {
+            $redirect = self::getForumRegistrationRedirectUrl();
+        }
+
+        $username = isset($_POST['username']) ? sanitize_user((string) wp_unslash($_POST['username']), true) : '';
+        $firstName = isset($_POST['first_name']) ? sanitize_text_field((string) wp_unslash($_POST['first_name'])) : '';
+        $lastName = isset($_POST['last_name']) ? sanitize_text_field((string) wp_unslash($_POST['last_name'])) : '';
+        $email = isset($_POST['email']) ? sanitize_email((string) wp_unslash($_POST['email'])) : '';
+        $password = isset($_POST['password']) ? (string) wp_unslash($_POST['password']) : '';
+        $passwordConfirm = isset($_POST['password_confirm']) ? (string) wp_unslash($_POST['password_confirm']) : '';
+
+        if ($username === '' || $firstName === '' || $lastName === '' || $email === '' || $password === '' || $passwordConfirm === '') {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Compila tutti i campi richiesti.', 'transiti'), $redirect));
+            exit;
+        }
+
+        if (! validate_username($username)) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Username non valido.', 'transiti'), $redirect));
+            exit;
+        }
+
+        if (username_exists($username)) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Username gia utilizzato.', 'transiti'), $redirect));
+            exit;
+        }
+
+        if (! is_email($email)) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Email non valida.', 'transiti'), $redirect));
+            exit;
+        }
+
+        if (email_exists($email)) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Email gia registrata.', 'transiti'), $redirect));
+            exit;
+        }
+
+        if (strlen($password) < 8) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('La password deve contenere almeno 8 caratteri.', 'transiti'), $redirect));
+            exit;
+        }
+
+        if (! hash_equals($password, $passwordConfirm)) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Le password non coincidono.', 'transiti'), $redirect));
+            exit;
+        }
+
+        $userId = wp_create_user($username, $password, $email);
+        if (is_wp_error($userId) || ! is_int($userId) || $userId <= 0) {
+            $message = is_wp_error($userId) ? $userId->get_error_message() : __('Registrazione non riuscita.', 'transiti');
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', $message, $redirect));
+            exit;
+        }
+
+        $user = get_user_by('id', $userId);
+        if (! $user instanceof \WP_User) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Registrazione non riuscita.', 'transiti'), $redirect));
+            exit;
+        }
+
+        $user->set_role('subscriber');
+        wp_update_user(array(
+                'ID'           => $userId,
+                'first_name'   => $firstName,
+                'last_name'    => $lastName,
+                'display_name' => trim($firstName . ' ' . $lastName) !== '' ? trim($firstName . ' ' . $lastName) : $username,
+        ));
+
+        $activationKey = wp_generate_password(32, false, false);
+        update_user_meta($userId, '_transiti_forum_activation_status', 'pending');
+        update_user_meta($userId, '_transiti_forum_activation_key', wp_hash_password($activationKey));
+        update_user_meta($userId, '_transiti_forum_activation_requested_at', (string) time());
+
+        if (! self::sendForumActivationEmail($user, $activationKey, $redirect)) {
+            require_once ABSPATH . 'wp-admin/includes/user.php';
+            wp_delete_user($userId);
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('error', __('Impossibile inviare la mail di attivazione. Riprova.', 'transiti'), $redirect));
+            exit;
+        }
+
+        wp_safe_redirect(self::buildForumRegistrationRedirectUrl('registered', '', $redirect));
+        exit;
+    }
+
+    public static function maybeActivateForumRegistration(): void
+    {
+        if (! isset($_GET['transiti_forum_activate'])) {
+            return;
+        }
+
+        $redirect = self::getForumRegistrationRedirectUrl();
+        $userId = isset($_GET['user']) ? (int) $_GET['user'] : 0;
+        $key = isset($_GET['key']) ? sanitize_text_field((string) wp_unslash($_GET['key'])) : '';
+
+        if ($userId <= 0 || $key === '') {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('activation_error', '', $redirect));
+            exit;
+        }
+
+        $user = get_user_by('id', $userId);
+        if (! $user instanceof \WP_User) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('activation_error', '', $redirect));
+            exit;
+        }
+
+        $status = (string) get_user_meta($userId, '_transiti_forum_activation_status', true);
+        if ($status === 'active') {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('already_active', '', $redirect));
+            exit;
+        }
+
+        $storedHash = (string) get_user_meta($userId, '_transiti_forum_activation_key', true);
+        if ($storedHash === '' || ! wp_check_password($key, $storedHash, $userId)) {
+            wp_safe_redirect(self::buildForumRegistrationRedirectUrl('activation_error', '', $redirect));
+            exit;
+        }
+
+        update_user_meta($userId, '_transiti_forum_activation_status', 'active');
+        delete_user_meta($userId, '_transiti_forum_activation_key');
+        delete_user_meta($userId, '_transiti_forum_activation_requested_at');
+
+        wp_safe_redirect(self::buildForumRegistrationRedirectUrl('activated', '', $redirect));
+        exit;
+    }
+
+    public static function blockPendingForumUserAuthentication($user, $username, $password)
+    {
+        if (! $user instanceof \WP_User) {
+            return $user;
+        }
+
+        $status = (string) get_user_meta((int) $user->ID, '_transiti_forum_activation_status', true);
+        if ($status !== 'pending') {
+            return $user;
+        }
+
+        return new \WP_Error(
+                'transiti_forum_activation_pending',
+                __('Account non ancora attivato. Controlla la mail e conferma la registrazione.', 'transiti')
+        );
+    }
+
+    private static function sendForumActivationEmail(\WP_User $user, string $activationKey, string $redirect): bool
+    {
+        $activationUrl = add_query_arg(
+                array(
+                        'transiti_forum_activate' => '1',
+                        'user'                    => (string) $user->ID,
+                        'key'                     => $activationKey,
+                ),
+                $redirect
+        );
+
+        $subject = __('Attiva il tuo account forum', 'transiti');
+        $message = implode(
+                "\n\n",
+                array(
+                        sprintf(__('Ciao %s,', 'transiti'), $user->user_login),
+                        __('Per attivare il tuo account e poter commentare nel forum, clicca sul link qui sotto:', 'transiti'),
+                        $activationUrl,
+                        __('Se non hai richiesto la registrazione, ignora questa email.', 'transiti'),
+                )
+        );
+
+        return wp_mail($user->user_email, $subject, $message);
+    }
+
+    private static function getForumRegistrationRedirectUrl(): string
+    {
+        $forumPage = self::findForumPage();
+        if ($forumPage instanceof \WP_Post) {
+            $forumUrl = get_permalink($forumPage);
+            if (is_string($forumUrl) && $forumUrl !== '') {
+                return $forumUrl;
+            }
+        }
+
+        return home_url('/forum/');
+    }
+
+    private static function buildForumRegistrationRedirectUrl(string $status, string $message = '', string $redirect = ''): string
+    {
+        $baseUrl = $redirect !== '' ? $redirect : self::getForumRegistrationRedirectUrl();
+        $args = array(
+                'transiti_forum_notice' => $status,
+        );
+
+        if ($message !== '') {
+            $args['transiti_forum_message'] = $message;
+        }
+
+        return add_query_arg($args, $baseUrl);
+    }
+
     /**
      * Keep podcast episode activity metadata in sync after ACF save.
      *
@@ -2424,7 +2668,7 @@ final class Plugin
             return;
         }
 
-        update_post_meta((int) $forumPage->ID, '_wp_page_template', 'page-no-sidebar.php');
+        update_post_meta((int) $forumPage->ID, '_wp_page_template', self::FORUM_PAGE_TEMPLATE);
 
         $existingItems = wp_get_nav_menu_items($menuId);
         $targetPosition = self::getForumTargetPosition($existingItems);
@@ -3057,12 +3301,23 @@ final class Plugin
         $rivistaUrl = post_type_exists('rivista') ? get_post_type_archive_link('rivista') : false;
         $rovescioUrl = post_type_exists('rubrica') ? get_post_type_archive_link('rubrica') : false;
         $podcastUrl = post_type_exists('podcast') ? get_post_type_archive_link('podcast') : false;
+        $eventiUrl = post_type_exists('eventi') ? get_post_type_archive_link('eventi') : false;
         $forumPage = self::findForumPage();
         $forumUrl = $forumPage instanceof \WP_Post ? get_permalink($forumPage) : false;
         $aboutPage = self::findAboutPage();
         $aboutUrl = $aboutPage instanceof \WP_Post ? get_permalink($aboutPage) : false;
         $contactPage = self::findContactPage();
         $contactUrl = $contactPage instanceof \WP_Post ? get_permalink($contactPage) : false;
+        $hasPublishedEventi = post_type_exists('eventi') && (bool) get_posts(array(
+                'post_type'              => 'eventi',
+                'post_status'            => 'publish',
+                'posts_per_page'         => 1,
+                'fields'                 => 'ids',
+                'no_found_rows'          => true,
+                'ignore_sticky_posts'    => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+        ));
 
         $isSameUrl = static function (?string $left, ?string $right): bool {
             if (! is_string($left) || $left === '' || ! is_string($right) || $right === '') {
@@ -3084,6 +3339,7 @@ final class Plugin
                 'rivista' => null,
                 'rovescio' => null,
                 'podcast' => null,
+                'eventi' => null,
                 'forum' => null,
                 'about' => null,
                 'contact' => null,
@@ -3132,6 +3388,18 @@ final class Plugin
                     )
             ) {
                 $matched['podcast'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['eventi'] === null
+                    && (
+                            (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'eventi')
+                            || $isSameUrl($url, is_string($eventiUrl) ? $eventiUrl : null)
+                            || strcasecmp($title, 'Eventi') === 0
+                    )
+            ) {
+                $matched['eventi'] = $item;
                 continue;
             }
 
@@ -3188,6 +3456,10 @@ final class Plugin
             $matched['podcast'] = $buildItem(__('Podcast', 'transiti'), $podcastUrl);
         }
 
+        if ($hasPublishedEventi && $matched['eventi'] === null && is_string($eventiUrl) && $eventiUrl !== '') {
+            $matched['eventi'] = $buildItem(__('Eventi', 'transiti'), $eventiUrl);
+        }
+
         if ($matched['forum'] === null && is_string($forumUrl) && $forumUrl !== '') {
             $matched['forum'] = $buildItem(__('Forum', 'transiti'), $forumUrl);
         }
@@ -3201,7 +3473,7 @@ final class Plugin
         }
 
         $ordered = array();
-        foreach (array('home', 'rivista', 'rovescio', 'podcast', 'forum', 'about', 'contact') as $key) {
+        foreach (array('home', 'rivista', 'rovescio', 'podcast', 'eventi', 'forum', 'about', 'contact') as $key) {
             if ($matched[$key] instanceof \WP_Post) {
                 $ordered[] = $matched[$key];
             }
