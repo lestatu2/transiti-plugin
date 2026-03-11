@@ -3028,6 +3028,13 @@ final class Plugin
             return $items;
         }
 
+        $items = array_values(array_filter(
+                $items,
+                static function ($item): bool {
+                    return !(($item->type ?? '') === 'taxonomy' && ($item->object ?? '') === 'sezioni');
+                }
+        ));
+
         $forumIndex = null;
         foreach ($items as $index => $item) {
             $title = trim(wp_strip_all_tags((string) ($item->title ?? '')));
