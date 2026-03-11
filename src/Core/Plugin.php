@@ -3028,24 +3028,6 @@ final class Plugin
             return $items;
         }
 
-        $items = array_values(array_filter(
-                $items,
-                static function ($item): bool {
-                    return !(($item->type ?? '') === 'taxonomy' && ($item->object ?? '') === 'sezioni');
-                }
-        ));
-
-        $forumIndex = null;
-        foreach ($items as $index => $item) {
-            $title = trim(wp_strip_all_tags((string) ($item->title ?? '')));
-            $isForumTitle = strcasecmp($title, 'Forum') === 0;
-            $isForumPath = strpos(untrailingslashit((string) ($item->url ?? '')), '/forum') !== false;
-            if ($isForumTitle || $isForumPath) {
-                $forumIndex = (int) $index;
-                break;
-            }
-        }
-
         $buildItem = static function (string $title, string $url): \WP_Post {
             return new \WP_Post((object) array(
                     'ID'                   => 0,
@@ -3071,61 +3053,161 @@ final class Plugin
             ));
         };
 
-        $podcastUrl = post_type_exists('podcast') ? get_post_type_archive_link('podcast') : false;
-        if (is_string($podcastUrl) && $podcastUrl !== '') {
-            $podcastExists = false;
-            foreach ($items as $item) {
-                if (
-                        (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
-                        || untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($podcastUrl)
-                ) {
-                    $podcastExists = true;
-                    break;
-                }
-            }
-
-            if (! $podcastExists) {
-                $podcastItem = $buildItem(__('Podcast', 'transiti'), $podcastUrl);
-                if ($forumIndex === null) {
-                    $items[] = $podcastItem;
-                } else {
-                    array_splice($items, $forumIndex + 1, 0, array($podcastItem));
-                }
-            }
-        }
-
+        $homeUrl = home_url('/');
         $rivistaUrl = post_type_exists('rivista') ? get_post_type_archive_link('rivista') : false;
-        if (is_string($rivistaUrl) && $rivistaUrl !== '') {
-            $rivistaExists = false;
-            $podcastIndex = null;
+        $rovescioUrl = post_type_exists('rubrica') ? get_post_type_archive_link('rubrica') : false;
+        $podcastUrl = post_type_exists('podcast') ? get_post_type_archive_link('podcast') : false;
+        $forumPage = self::findForumPage();
+        $forumUrl = $forumPage instanceof \WP_Post ? get_permalink($forumPage) : false;
+        $aboutPage = self::findAboutPage();
+        $aboutUrl = $aboutPage instanceof \WP_Post ? get_permalink($aboutPage) : false;
+        $contactPage = self::findContactPage();
+        $contactUrl = $contactPage instanceof \WP_Post ? get_permalink($contactPage) : false;
 
-            foreach ($items as $index => $item) {
-                if (
-                        (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'rivista')
-                        || untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($rivistaUrl)
-                ) {
-                    $rivistaExists = true;
-                }
-
-                if (
-                        (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
-                        || (is_string($podcastUrl) && $podcastUrl !== '' && untrailingslashit((string) ($item->url ?? '')) === untrailingslashit($podcastUrl))
-                ) {
-                    $podcastIndex = (int) $index;
-                }
+        $isSameUrl = static function (?string $left, ?string $right): bool {
+            if (! is_string($left) || $left === '' || ! is_string($right) || $right === '') {
+                return false;
             }
 
-            if (! $rivistaExists) {
-                $rivistaItem = $buildItem(__('La rivista', 'transiti'), $rivistaUrl);
-                if ($podcastIndex === null) {
-                    $items[] = $rivistaItem;
-                } else {
-                    array_splice($items, $podcastIndex + 1, 0, array($rivistaItem));
+            return untrailingslashit($left) === untrailingslashit($right);
+        };
+
+        $filteredItems = array_values(array_filter(
+                $items,
+                static function ($item): bool {
+                    return !(($item->type ?? '') === 'taxonomy' && ($item->object ?? '') === 'sezioni');
                 }
+        ));
+
+        $matched = array(
+                'home' => null,
+                'rivista' => null,
+                'rovescio' => null,
+                'podcast' => null,
+                'forum' => null,
+                'about' => null,
+                'contact' => null,
+        );
+        $leftovers = array();
+
+        foreach ($filteredItems as $item) {
+            $title = trim(wp_strip_all_tags((string) ($item->title ?? '')));
+            $url = (string) ($item->url ?? '');
+
+            if ($matched['home'] === null && ($isSameUrl($url, $homeUrl) || strcasecmp($title, 'Home') === 0)) {
+                $matched['home'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['rivista'] === null
+                    && (
+                            (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'rivista')
+                            || $isSameUrl($url, is_string($rivistaUrl) ? $rivistaUrl : null)
+                            || strcasecmp($title, 'La rivista') === 0
+                    )
+            ) {
+                $matched['rivista'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['rovescio'] === null
+                    && (
+                            (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'rubrica')
+                            || $isSameUrl($url, is_string($rovescioUrl) ? $rovescioUrl : null)
+                            || strcasecmp($title, 'Il Rovescio e il Diritto') === 0
+                    )
+            ) {
+                $matched['rovescio'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['podcast'] === null
+                    && (
+                            (($item->type ?? '') === 'post_type_archive' && ($item->object ?? '') === 'podcast')
+                            || $isSameUrl($url, is_string($podcastUrl) ? $podcastUrl : null)
+                            || strcasecmp($title, 'Podcast') === 0
+                    )
+            ) {
+                $matched['podcast'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['forum'] === null
+                    && (
+                            $isSameUrl($url, is_string($forumUrl) ? $forumUrl : null)
+                            || strcasecmp($title, 'Forum') === 0
+                            || strpos(untrailingslashit($url), '/forum') !== false
+                    )
+            ) {
+                $matched['forum'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['about'] === null
+                    && (
+                            $isSameUrl($url, is_string($aboutUrl) ? $aboutUrl : null)
+                            || strcasecmp($title, 'Chi siamo') === 0
+                    )
+            ) {
+                $matched['about'] = $item;
+                continue;
+            }
+
+            if (
+                    $matched['contact'] === null
+                    && (
+                            $isSameUrl($url, is_string($contactUrl) ? $contactUrl : null)
+                            || strcasecmp($title, 'Contattaci') === 0
+                    )
+            ) {
+                $matched['contact'] = $item;
+                continue;
+            }
+
+            $leftovers[] = $item;
+        }
+
+        if ($matched['home'] === null) {
+            $matched['home'] = $buildItem(__('Home', 'transiti'), $homeUrl);
+        }
+
+        if ($matched['rivista'] === null && is_string($rivistaUrl) && $rivistaUrl !== '') {
+            $matched['rivista'] = $buildItem(__('La rivista', 'transiti'), $rivistaUrl);
+        }
+
+        if ($matched['rovescio'] === null && is_string($rovescioUrl) && $rovescioUrl !== '') {
+            $matched['rovescio'] = $buildItem(__('Il Rovescio e il Diritto', 'transiti'), $rovescioUrl);
+        }
+
+        if ($matched['podcast'] === null && is_string($podcastUrl) && $podcastUrl !== '') {
+            $matched['podcast'] = $buildItem(__('Podcast', 'transiti'), $podcastUrl);
+        }
+
+        if ($matched['forum'] === null && is_string($forumUrl) && $forumUrl !== '') {
+            $matched['forum'] = $buildItem(__('Forum', 'transiti'), $forumUrl);
+        }
+
+        if ($matched['about'] === null && is_string($aboutUrl) && $aboutUrl !== '') {
+            $matched['about'] = $buildItem(__('Chi siamo', 'transiti'), $aboutUrl);
+        }
+
+        if ($matched['contact'] === null && is_string($contactUrl) && $contactUrl !== '') {
+            $matched['contact'] = $buildItem(__('Contattaci', 'transiti'), $contactUrl);
+        }
+
+        $ordered = array();
+        foreach (array('home', 'rivista', 'rovescio', 'podcast', 'forum', 'about', 'contact') as $key) {
+            if ($matched[$key] instanceof \WP_Post) {
+                $ordered[] = $matched[$key];
             }
         }
 
-        return $items;
+        return array_merge($ordered, $leftovers);
     }
 
     /**
