@@ -45,7 +45,13 @@ foreach ($transiti_redattori_users_raw as $transiti_redattore_user) {
 	$transiti_redattori_users[] = $transiti_redattore_user;
 }
 
+$transiti_mission_title = function_exists('get_field') ? trim((string) get_field('mission_title', 'option')) : '';
+$transiti_mission_subtitle = function_exists('get_field') ? trim((string) get_field('mission_subtitle', 'option')) : '';
+$transiti_mission_summary = function_exists('get_field') ? trim((string) get_field('mission_summary', 'option')) : '';
 $transiti_mission_content = function_exists('get_field') ? (string) get_field('mission', 'option') : '';
+$transiti_mission_author = function_exists('get_field') ? trim((string) get_field('mission_author', 'option')) : '';
+$transiti_mission_image_id = function_exists('get_field') ? (int) get_field('mission_image', 'option') : 0;
+$transiti_mission_image_url = $transiti_mission_image_id > 0 ? (string) wp_get_attachment_image_url($transiti_mission_image_id, 'large') : '';
 
 $transiti_gallery_items = function_exists('get_field') ? get_field('catalogo_gallery', 'option') : array();
 $transiti_gallery_slides = array();
@@ -135,10 +141,32 @@ $transiti_social_icons = array(
 				<div class="col-lg-9 col-12 ps-lg-0">
 					<article class="transiti-editoriale-article">
 						<div class="transiti-editoriale-label"><?php echo esc_html__('Chi siamo', 'transiti'); ?></div>
-						<h2 class="transiti-editoriale-title"><?php echo esc_html__('Mission', 'transiti'); ?></h2>
+						<h2 class="transiti-editoriale-title"><?php echo esc_html($transiti_mission_title !== '' ? $transiti_mission_title : __('Mission', 'transiti')); ?></h2>
+						<?php if ($transiti_mission_subtitle !== '') : ?>
+							<div class="transiti-home-post-meta">
+								<span class="transiti-home-meta-secondary text-link fw-bold"><?php echo esc_html($transiti_mission_subtitle); ?></span>
+							</div>
+						<?php endif; ?>
 						<div class="transiti-editoriale-content">
+							<?php if ($transiti_mission_image_url !== '') : ?>
+								<div class="transiti-editoriale-summary mb-4">
+									<img class="img-fluid w-100" src="<?php echo esc_url($transiti_mission_image_url); ?>" alt="<?php echo esc_attr($transiti_mission_title !== '' ? $transiti_mission_title : __('Mission', 'transiti')); ?>">
+								</div>
+							<?php endif; ?>
+							<?php if ($transiti_mission_summary !== '') : ?>
+								<div class="transiti-editoriale-summary">
+									<span class="transiti-editoriale-summary-text"><?php echo esc_html($transiti_mission_summary); ?></span>
+								</div>
+							<?php endif; ?>
 							<?php if ($transiti_mission_content !== '') : ?>
 								<?php echo wp_kses_post(apply_filters('the_content', $transiti_mission_content)); ?>
+							<?php endif; ?>
+							<?php if ($transiti_mission_author !== '') : ?>
+								<div class="transiti-editoriale-author-sign">
+									<div class="transiti-editoriale-author-meta">
+										<div class="transiti-editoriale-author-name"><?php echo esc_html($transiti_mission_author); ?></div>
+									</div>
+								</div>
 							<?php endif; ?>
 						</div>
 					</article>

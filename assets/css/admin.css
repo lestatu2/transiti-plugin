@@ -1,1 +1,4 @@
-﻿/* Transiti admin styles placeholder */
+#transiti-rubrica-char-count.is-over-limit {
+    color: #b32d2e;
+    font-weight: 600;
+}
