@@ -1625,7 +1625,7 @@ final class Plugin
             ? (int) mb_strlen($combinedText, 'UTF-8')
             : (int) strlen($combinedText);
 
-        if ($combinedLength <= 1000) {
+        if ($combinedLength <= 2500) {
             return $data;
         }
 
@@ -1634,7 +1634,7 @@ final class Plugin
                 /* translators: 1: current length, 2: max length */
                 __('Errore salvataggio Rubrica: riassunto + contenuto superano il limite (%1$d/%2$d caratteri compresi di spazi).', 'transiti'),
                 $combinedLength,
-                1000
+                2500
             )
         );
 
