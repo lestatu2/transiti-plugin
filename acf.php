@@ -449,6 +449,12 @@ function transiti_register_acf_configuration_fields(): void
                 'first_day' => 1,
             ),
             array(
+                'key' => 'field_transiti_rivista_link_ecommerce',
+                'label' => __('Link ecommerce', 'transiti'),
+                'name' => 'link_ecommerce',
+                'type' => 'url',
+            ),
+            array(
                 'key' => 'field_transiti_editoriale_firma_autore_rivista',
                 'label' => __('Firma editoriale con autore', 'transiti'),
                 'name' => 'editoriale_firma_autore_rivista',
