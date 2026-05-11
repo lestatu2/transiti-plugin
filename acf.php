@@ -455,6 +455,15 @@ function transiti_register_acf_configuration_fields(): void
                 'type' => 'url',
             ),
             array(
+                'key' => 'field_transiti_rivista_featured',
+                'label' => __('Immagine featured home', 'transiti'),
+                'name' => 'featured',
+                'type' => 'image',
+                'return_format' => 'id',
+                'preview_size' => 'medium',
+                'library' => 'all',
+            ),
+            array(
                 'key' => 'field_transiti_editoriale_firma_autore_rivista',
                 'label' => __('Firma editoriale con autore', 'transiti'),
                 'name' => 'editoriale_firma_autore_rivista',
