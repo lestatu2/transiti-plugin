@@ -353,6 +353,22 @@ function transiti_register_acf_configuration_fields(): void
                 'instructions' => __('Numero massimo di caratteri, spazi inclusi, consentiti per riassunto + contenuto della Rubrica.', 'transiti'),
             ),
             array(
+                'key' => 'field_transiti_tab_rivista',
+                'label' => __('Rivista', 'transiti'),
+                'name' => '',
+                'type' => 'tab',
+                'placement' => 'top',
+            ),
+            array(
+                'key' => 'field_transiti_editoriale_rivista',
+                'label' => __('Editoriale rivista', 'transiti'),
+                'name' => 'editoriale_rivista',
+                'type' => 'wysiwyg',
+                'tabs' => 'all',
+                'toolbar' => 'full',
+                'media_upload' => 1,
+            ),
+            array(
                 'key' => 'field_transiti_tab_feed',
                 'label' => __('Feed', 'transiti'),
                 'name' => '',
